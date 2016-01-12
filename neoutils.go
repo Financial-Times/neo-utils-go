@@ -5,7 +5,7 @@ import (
 	"github.com/jmcvetta/neoism"
 )
 
-// StringerDb wraps neoism Database to provide a String function
+// StringerDb wraps neoism Database to provide a String function, which outputs the database URL
 type StringerDb struct{ *neoism.Database }
 
 func (sdb StringerDb) String() string {
