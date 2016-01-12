@@ -16,7 +16,7 @@ func (sdb StringerDb) String() string {
 func EnsureIndexes(im IndexManager, indexes map[string]string) error {
 	for label, propertyName := range indexes {
 		err := ensureIndex(im, label, propertyName)
-		if err != nil {
+		if err != nil { // stop as soon as something goes wrong
 			return err
 		}
 	}
@@ -41,7 +41,10 @@ func ensureIndex(im IndexManager, label string, propertyName string) error {
 	}
 	if !indexFound {
 		log.Infof("Creating index for type %s on property %s\n", label, propertyName)
-		im.CreateIndex(label, propertyName)
+		_, err := im.CreateIndex(label, propertyName)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 
