@@ -12,26 +12,43 @@ func (sdb StringerDb) String() string {
 	return sdb.Url
 }
 
-// EnsureIndex will check whether an index exists for a given property on a given label, and if missing will create one
-func EnsureIndex(db *neoism.Database, label string, property string) {
+// EnsureIndexes will, for a map of labels and properties, check whether an index exists for a given property on a given label, and if missing will create one
+func EnsureIndexes(im IndexManager, indexes map[string]string) error {
+	for label, propertyName := range indexes {
+		err := ensureIndex(im, label, propertyName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
-	personIndexes, err := db.Indexes(label)
+func ensureIndex(im IndexManager, label string, propertyName string) error {
+
+	indexes, err := im.Indexes(label)
 
 	if err != nil {
-		log.Errorf("Error on creating index=%v\n", err)
+		return err
 	}
 
 	var indexFound bool
 
-	for _, index := range personIndexes {
-		if len(index.PropertyKeys) == 1 && index.PropertyKeys[0] == property {
+	for _, index := range indexes {
+		if len(index.PropertyKeys) == 1 && index.PropertyKeys[0] == propertyName {
 			indexFound = true
 			break
 		}
 	}
 	if !indexFound {
-		log.Infof("Creating index for person for neo4j instance at %s\n", db.Url)
-		db.CreateIndex(label, property)
+		log.Infof("Creating index for type %s on property %s\n", label, propertyName)
+		im.CreateIndex(label, propertyName)
 	}
+	return nil
 
+}
+
+// Manages the maintenance of indexes
+type IndexManager interface {
+	CreateIndex(label string, propertyName string) (*neoism.Index, error)
+	Indexes(label string) ([]*neoism.Index, error)
 }
