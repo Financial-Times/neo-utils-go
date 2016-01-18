@@ -43,6 +43,18 @@ func EnsureIndexes(im IndexManager, indexes map[string]string) error {
 	return nil
 }
 
+// EnsureConstraints will, for a map of labels and properties, check whether a constraint exists for a given property on a given label, and
+// if missing will create one. Creating the unique constraint ensures an index automatically.
+func EnsureConstraints(im IndexManager, indexes map[string]string) error {
+	for label, propertyName := range indexes {
+		err := ensureConstraint(im, label, propertyName)
+		if err != nil { // stop as soon as something goes wrong
+			return err
+		}
+	}
+	return nil
+}
+
 func ensureIndex(im IndexManager, label string, propertyName string) error {
 
 	indexes, err := im.Indexes(label)
@@ -59,6 +71,7 @@ func ensureIndex(im IndexManager, label string, propertyName string) error {
 			break
 		}
 	}
+
 	if !indexFound {
 		log.Infof("Creating index for type %s on property %s\n", label, propertyName)
 		_, err := im.CreateIndex(label, propertyName)
@@ -70,8 +83,52 @@ func ensureIndex(im IndexManager, label string, propertyName string) error {
 
 }
 
-// IndexManager manages the maintenance of indexes
+func ensureConstraint(im IndexManager, label string, propertyName string) error {
+
+	constraints, err := im.UniqueConstraints(label, propertyName)
+
+	if err != nil {
+		return err
+	}
+
+	var constraintFound bool
+
+	for _, constraint := range constraints {
+		if len(constraint.PropertyKeys) == 1 && constraint.PropertyKeys[0] == propertyName {
+			constraintFound = true
+			break
+		}
+	}
+	if !constraintFound {
+		log.Infof("Creating unique constraint for type %s on property %s\n", label, propertyName)
+		_, err = im.CreateUniqueConstraint(label, propertyName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+
+}
+
+func getIndex(im IndexManager, label string, propertyName string) (*neoism.Index, error) {
+	indexes, err := im.Indexes(label)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, index := range indexes {
+		if len(index.PropertyKeys) == 1 && index.PropertyKeys[0] == propertyName {
+			return index, nil
+		}
+	}
+	return nil, nil
+}
+
+// IndexManager manages the maintenance of indexes and unique constraints
 type IndexManager interface {
 	CreateIndex(label string, propertyName string) (*neoism.Index, error)
 	Indexes(label string) ([]*neoism.Index, error)
+	CreateUniqueConstraint(label string, propertyName string) (*neoism.UniqueConstraint, error)
+	UniqueConstraints(label string, propertyName string) ([]*neoism.UniqueConstraint, error)
 }
