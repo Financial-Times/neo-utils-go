@@ -1,6 +1,7 @@
 package neoutils
 
 import (
+	"github.com/Financial-Times/neo-cypher-runner-go"
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmcvetta/neoism"
 )
@@ -10,6 +11,26 @@ type StringerDb struct{ *neoism.Database }
 
 func (sdb StringerDb) String() string {
 	return sdb.Url
+}
+
+// Check will use the supplied CypherRunner to check connectivity to Neo4j
+//TODO - replace with a more generic check
+func Check(cr neocypherrunner.CypherRunner) error {
+	results := []struct {
+		node interface{}
+	}{}
+
+	query := &neoism.CypherQuery{
+		Statement: `MATCH (n) RETURN n LIMIT 1`,
+		Result:    &results,
+	}
+
+	err := cr.CypherBatch([]*neoism.CypherQuery{query})
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // EnsureIndexes will, for a map of labels and properties, check whether an index exists for a given property on a given label, and if missing will create one
@@ -50,7 +71,7 @@ func ensureIndex(im IndexManager, label string, propertyName string) error {
 
 }
 
-// Manages the maintenance of indexes
+// IndexManager manages the maintenance of indexes
 type IndexManager interface {
 	CreateIndex(label string, propertyName string) (*neoism.Index, error)
 	Indexes(label string) ([]*neoism.Index, error)

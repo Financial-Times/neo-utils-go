@@ -32,6 +32,21 @@ func TestIndexesAreNotRecreatedIfPresent(t *testing.T) {
 	assert.NoError(err, "Unexpected error")
 }
 
+func TestCheckSucceedsIfCanConnectToNeo4j(t *testing.T) {
+	assert := assert.New(t)
+	mCR := mockCypherRunner{}
+	err := Check(mCR)
+	assert.NoError(err, "Unexpected error")
+
+}
+
+func TestCheckErrorsIfCannotConnectToNeo4j(t *testing.T) {
+	assert := assert.New(t)
+	mCR := mockCypherRunner{true}
+	err := Check(mCR)
+	assert.Error(err, "Didn't get expected error")
+}
+
 type mockIndexManager struct {
 	existingIndexes []*neoism.Index
 }
@@ -46,4 +61,19 @@ func (mIM mockIndexManager) CreateIndex(label string, propertyName string) (*neo
 
 func (mIM mockIndexManager) Indexes(label string) ([]*neoism.Index, error) {
 	return mIM.existingIndexes, nil
+}
+
+type mockCypherRunner struct {
+	fail bool
+}
+
+func (mCR mockCypherRunner) CypherBatch(queries []*neoism.CypherQuery) error {
+	if mCR.fail == true {
+		return errors.New("Fail to run query")
+	}
+	return nil
+}
+
+func (mCR mockCypherRunner) String() string {
+	return "URL"
 }
