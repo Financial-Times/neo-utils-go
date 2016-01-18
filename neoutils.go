@@ -14,14 +14,13 @@ func (sdb StringerDb) String() string {
 }
 
 // Check will use the supplied CypherRunner to check connectivity to Neo4j
-//TODO - replace with a more generic check
 func Check(cr neocypherrunner.CypherRunner) error {
 	results := []struct {
 		node interface{}
 	}{}
 
 	query := &neoism.CypherQuery{
-		Statement: `MATCH (n) RETURN n LIMIT 1`,
+		Statement: `MATCH (n) RETURN id(n) LIMIT 1`,
 		Result:    &results,
 	}
 
