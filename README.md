@@ -7,7 +7,7 @@ Provides and EnsureIndexes function that will take a map of label/property pairs
 and an IndexManager (normally this will be a neoism.Database) and checks whether those
 indexes exist. If not, they are created.
 
-##Batch Cypher Runner
+## Batch Cypher Runner
 Currently supports batch running of queries.
 
 import "github.com/Financial-Times/neo-cypher-runner-go"
