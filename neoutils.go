@@ -59,11 +59,11 @@ func ensureIndex(im IndexManager, label string, propertyName string) error {
 
 	indexes, err := im.Indexes(label)
 
-	if err != nil {
+	var indexFound bool
+
+	if err != nil && err != neoism.NotFound {
 		return err
 	}
-
-	var indexFound bool
 
 	for _, index := range indexes {
 		if len(index.PropertyKeys) == 1 && index.PropertyKeys[0] == propertyName {
@@ -84,7 +84,6 @@ func ensureIndex(im IndexManager, label string, propertyName string) error {
 }
 
 func ensureConstraint(im IndexManager, label string, propertyName string) error {
-
 	_, err := im.UniqueConstraints(label, propertyName)
 
 	if err != nil {
@@ -92,6 +91,7 @@ func ensureConstraint(im IndexManager, label string, propertyName string) error 
 			log.Infof("Creating unique constraint for type %s on property %s\n", label, propertyName)
 			_, err = im.CreateUniqueConstraint(label, propertyName)
 			if err != nil {
+				log.Errorf("Cannot create constraint for type %s on property %s\n", label, propertyName)
 				return err
 			}
 		}

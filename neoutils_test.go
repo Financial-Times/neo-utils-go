@@ -86,6 +86,9 @@ func (mIM mockIndexManager) CreateIndex(label string, propertyName string) (*neo
 }
 
 func (mIM mockIndexManager) Indexes(label string) ([]*neoism.Index, error) {
+	if len(mIM.existingIndexes) == 0 {
+		return nil, neoism.NotFound
+	}
 	return mIM.existingIndexes, nil
 }
 
@@ -98,6 +101,9 @@ func (mIM mockIndexManager) CreateUniqueConstraint(label string, propertyName st
 }
 
 func (mIM mockIndexManager) UniqueConstraints(label string, propertyName string) ([]*neoism.UniqueConstraint, error) {
+	if len(mIM.existingConstraints) == 0 {
+		return nil, neoism.NotFound
+	}
 	return mIM.existingConstraints, nil
 }
 
