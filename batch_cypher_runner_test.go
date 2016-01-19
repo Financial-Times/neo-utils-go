@@ -2,10 +2,11 @@ package neoutils
 
 import (
 	"errors"
-	"github.com/jmcvetta/neoism"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/jmcvetta/neoism"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAllQueriesRun(t *testing.T) {
@@ -128,11 +129,19 @@ func (mr *mockRunner) CypherBatch(queries []*neoism.CypherQuery) error {
 	return nil
 }
 
+func (mr *mockRunner) String() string {
+	return "URL"
+}
+
 type failRunner struct {
 }
 
 func (mr *failRunner) CypherBatch(queries []*neoism.CypherQuery) error {
 	return errors.New("UNIT TESTING: Deliberate fail for every query")
+}
+
+func (mr *failRunner) String() string {
+	return "URL"
 }
 
 type delayRunner struct {
@@ -142,4 +151,8 @@ type delayRunner struct {
 func (dr *delayRunner) CypherBatch(queries []*neoism.CypherQuery) error {
 	dr.queriesRun <- queries
 	return nil
+}
+
+func (dr *delayRunner) String() string {
+	return "URL"
 }
