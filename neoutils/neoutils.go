@@ -1,7 +1,7 @@
 package neoutils
 
 import (
-	"github.com/Financial-Times/neo-cypher-runner-go"
+	"github.com/Financial-Times/neo-cypher-runner-go/neocypherrunner"
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmcvetta/neoism"
 )
