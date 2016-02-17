@@ -1,7 +1,6 @@
 package neoutils
 
 import (
-	"github.com/Financial-Times/neo-cypher-runner-go/neocypherrunner"
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmcvetta/neoism"
 )
@@ -14,7 +13,7 @@ func (sdb StringerDb) String() string {
 }
 
 // Check will use the supplied CypherRunner to check connectivity to Neo4j
-func Check(cr neocypherrunner.CypherRunner) error {
+func Check(cr CypherRunner) error {
 	results := []struct {
 		node interface{}
 	}{}
