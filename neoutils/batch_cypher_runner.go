@@ -1,6 +1,7 @@
 package neoutils
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/jmcvetta/neoism"
 	"github.com/rcrowley/go-metrics"
@@ -65,7 +66,7 @@ func (bcr *BatchCypherRunner) batcher() {
 		t := metrics.GetOrRegisterTimer("execute-neo4j-batch", metrics.DefaultRegistry)
 		var err error
 		t.Time(func() {
-			err = bcr.cr.CypherBatch(currentQueries)
+			err = processCypherBatch(bcr, currentQueries)
 		})
 		if err != nil {
 			log.Printf("ERROR Got error running batch, error=%v\n", err)
@@ -76,6 +77,30 @@ func (bcr *BatchCypherRunner) batcher() {
 		b.Mark(int64(len(currentQueries)))
 		g.Update(0)
 	}
+}
+
+func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*neoism.CypherQuery) error {
+	err := bcr.cr.CypherBatch(currentQueries)
+	if err != nil {
+		if neoErr, ok := err.(neoism.NeoError); ok && neoErr.Exception == "BatchOperationFailedException" {
+			neoErrMsg := struct {
+				Message string           `json:"message"`
+				Errors  []neoism.TxError `json:"errors"`
+			}{}
+
+			if jsonErr := json.Unmarshal([]byte(neoErr.Message), &neoErrMsg); jsonErr != nil {
+				log.Printf("ERROR Got error trying to process Neo Error Message, error=%v\n", jsonErr)
+				return err
+			}
+
+			for _, nerr := range neoErrMsg.Errors {
+				if nerr.Code == "Neo.ClientError.Schema.ConstraintViolation" {
+					return NewConstraintViolationError(nerr.Message, &neoErr)
+				}
+			}
+		}
+	}
+	return err
 }
 
 func (bcr *BatchCypherRunner) String() string {

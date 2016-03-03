@@ -6,6 +6,8 @@ import (
 
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
+	"log"
+	"os"
 )
 
 func TestIndexesGetCreatedIfMissing(t *testing.T) {
@@ -120,4 +122,45 @@ func (mCR mockCypherRunner) CypherBatch(queries []*neoism.CypherQuery) error {
 
 func (mCR mockCypherRunner) String() string {
 	return "URL"
+}
+
+func connectTest(t *testing.T) *neoism.Database {
+	log.SetFlags(log.Ltime | log.Lshortfile)
+	neo4jURL := os.Getenv("NEO4J_URL")
+	if neo4jURL == "" {
+		neo4jURL = "http://localhost:7474/db/data"
+	}
+
+	db, err := neoism.Connect(neo4jURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := db.CreateUniqueConstraint("NeoUtilsTest", "name"); err != nil {
+		t.Fatal(err)
+	}
+	return db
+}
+
+func cleanup(t *testing.T, db *neoism.Database) {
+
+	err := db.CypherBatch([]*neoism.CypherQuery{
+		&neoism.CypherQuery{
+			Statement: `MATCH (x:NeoUtilsTest) DETACH DELETE x`,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func cleanupConstraints(t *testing.T, db *neoism.Database) {
+	err := db.CypherBatch([]*neoism.CypherQuery{
+		&neoism.CypherQuery{
+			Statement: `DROP CONSTRAINT ON (x:NeoUtilsTest) ASSERT x.name IS UNIQUE`,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"fmt"
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 )
@@ -118,6 +119,48 @@ func TestEveryoneGetsErrorOnFailure(t *testing.T) {
 	}
 
 	assert.Equal(len(errCh), 0, "too many errors")
+}
+
+func TestAttemptToWriteConflictItem(t *testing.T) {
+	assert := assert.New(t)
+	db := connectTest(t)
+	mr := StringerDb{db}
+	batchCypherRunner := NewBatchCypherRunner(mr, 3)
+	errCh := make(chan error)
+
+	defer cleanup(t, db)
+	defer cleanupConstraints(t, db)
+
+	res := []struct {
+		Rs int `json:"rs"`
+	}{}
+
+	go func() {
+		fmt.Println("Batching...")
+		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+			&neoism.CypherQuery{Statement: "CREATE (x:NeoUtilsTest { name : 'Andres', title : 'Developer' })"},
+			&neoism.CypherQuery{Statement: "CREATE (x:NeoUtilsTest { name : 'Bob', title : 'Builder' })"},
+			&neoism.CypherQuery{
+				Statement: "MATCH (x:NeoUtilsTest) return count(x) as rs",
+				Result:    &res},
+		})
+		fmt.Println("Done...")
+	}()
+
+	assert.Equal(len(errCh), 0, "too many errors")
+	var err = <-errCh
+	assert.NoError(err)
+	assert.NotEmpty(res)
+	assert.Equal(2, res[0].Rs)
+
+	go func() {
+		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+			&neoism.CypherQuery{Statement: "CREATE (x:NeoUtilsTest { name : 'Andres', title : 'Should fail' })"},
+		})
+	}()
+	err = <-errCh
+	assert.Error(err)
+	assert.IsType(&ConstraintViolationError{}, err)
 }
 
 type mockRunner struct {
