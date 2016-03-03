@@ -41,9 +41,9 @@ type cypherQueryBatch struct {
 func (bcr *BatchCypherRunner) batcher() {
 	g := metrics.GetOrRegisterGauge("batchQueueSize", metrics.DefaultRegistry)
 	b := metrics.GetOrRegisterMeter("batchThroughput", metrics.DefaultRegistry)
-	var currentQueries []*neoism.CypherQuery
-	var currentErrorChannels []chan error
 	for {
+		var currentQueries []*neoism.CypherQuery
+		var currentErrorChannels []chan error
 		// wait for at least one
 		cb := <-bcr.ch
 		currentErrorChannels = append(currentErrorChannels, cb.err)
@@ -75,8 +75,6 @@ func (bcr *BatchCypherRunner) batcher() {
 		}
 		b.Mark(int64(len(currentQueries)))
 		g.Update(0)
-		currentQueries = currentQueries[0:0] // clears the slice
-		currentErrorChannels = currentErrorChannels[0:0]
 	}
 }
 
