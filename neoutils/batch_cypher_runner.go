@@ -68,9 +68,6 @@ func (bcr *BatchCypherRunner) batcher() {
 		t.Time(func() {
 			err = processCypherBatch(bcr, currentQueries)
 		})
-		if err != nil {
-			log.Printf("ERROR Got error running batch, error=%v\n", err)
-		}
 		for _, cec := range currentErrorChannels {
 			cec <- err
 		}
