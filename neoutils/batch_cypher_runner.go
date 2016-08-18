@@ -7,10 +7,6 @@ import (
 	"log"
 )
 
-type CypherRunner interface {
-	CypherBatch(queries []*neoism.CypherQuery) error
-}
-
 func NewBatchCypherRunner(cypherRunner CypherRunner, count int) CypherRunner {
 	cr := BatchCypherRunner{cypherRunner, make(chan cypherQueryBatch, count), count}
 
