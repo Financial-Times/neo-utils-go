@@ -2,14 +2,12 @@ package neoutils
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/jmcvetta/neoism"
 	"github.com/rcrowley/go-metrics"
 	"log"
 )
 
 type CypherRunner interface {
-	fmt.Stringer
 	CypherBatch(queries []*neoism.CypherQuery) error
 }
 
@@ -98,8 +96,4 @@ func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*neoism.CypherQ
 		}
 	}
 	return err
-}
-
-func (bcr *BatchCypherRunner) String() string {
-	return fmt.Sprintf("BatchCypherRunner(%s)", bcr.cr.String())
 }
