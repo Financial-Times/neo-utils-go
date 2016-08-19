@@ -17,7 +17,7 @@ type ConnectionConfig struct {
 	HTTPClient    *http.Client
 }
 
-func DefaultConfig() *ConnectionConfig {
+func DefaultConnectionConfig() *ConnectionConfig {
 	return &ConnectionConfig{
 		BatchSize:     1024,
 		Transactional: true,
@@ -31,7 +31,7 @@ func DefaultConfig() *ConnectionConfig {
 
 func Connect(neoURL string, conf *ConnectionConfig) (NeoConnection, error) {
 	if conf == nil {
-		conf = DefaultConfig()
+		conf = DefaultConnectionConfig()
 	}
 
 	db, err := neoism.Connect(neoURL)
