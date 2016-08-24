@@ -1,6 +1,7 @@
 package neoutils
 
 import (
+	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
 )
 
@@ -15,6 +16,13 @@ func (cr TransactionalCypherRunner) CypherBatch(queries []*neoism.CypherQuery) e
 	if err != nil {
 		if tx != nil {
 			tx.Rollback()
+		}
+		if err == neoism.TxQueryError {
+			txErr := rwapi.ConstraintOrTransactionError{Message: err.Error()}
+			for _, e := range tx.Errors {
+				txErr.Details = append(txErr.Details, e.Message)
+			}
+			err = txErr
 		}
 		return err
 	}
