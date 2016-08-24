@@ -12,9 +12,12 @@ type ConnectionConfig struct {
 	// CypherQuery into a single batch. BatchSize 0 disables this behaviour.
 	// Values >0 indicate the largest preferred batch size.  Actual sizes
 	// may be larger because values from a single call will never be split.
-	BatchSize     int
+	BatchSize int
+	// Transactional indicates that the connection should use the
+	// transactional endpoints in the neo4j REST API.
 	Transactional bool
-	HTTPClient    *http.Client
+	// Optionally a custom http.Client can be supplied
+	HTTPClient *http.Client
 }
 
 func DefaultConnectionConfig() *ConnectionConfig {
