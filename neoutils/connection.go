@@ -3,6 +3,7 @@ package neoutils
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/jmcvetta/neoism"
 )
@@ -28,6 +29,7 @@ func DefaultConnectionConfig() *ConnectionConfig {
 			Transport: &http.Transport{
 				MaxIdleConnsPerHost: 100,
 			},
+			Timeout: 1 * time.Minute,
 		},
 	}
 }
