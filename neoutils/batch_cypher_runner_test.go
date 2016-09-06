@@ -60,20 +60,20 @@ func TestQueryBatching(t *testing.T) {
 	}()
 
 	go func() {
-		time.Sleep(time.Millisecond * 1)
+		time.Sleep(time.Millisecond * 10)
 		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
 			&neoism.CypherQuery{Statement: "Second"},
 		})
 	}()
 
 	go func() {
-		time.Sleep(time.Millisecond * 2)
+		time.Sleep(time.Millisecond * 20)
 		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
 			&neoism.CypherQuery{Statement: "Third"},
 		})
 	}()
 
-	time.Sleep(3 * time.Millisecond)
+	time.Sleep(30 * time.Millisecond)
 
 	// Only "First" can have finished because delayRunner is blocking the others until we read from its channel.
 	assert.Equal([]*neoism.CypherQuery{
