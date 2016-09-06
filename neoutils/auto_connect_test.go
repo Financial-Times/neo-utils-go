@@ -323,7 +323,7 @@ func testCypherErrorCausesReconnect(t *testing.T, theError error, expectReconnec
 	// should not connect again
 	select {
 	case <-triedConnect:
-		t.Fatal("shoulu not have reconnected")
+		t.Fatal("should not have reconnected")
 	case <-time.After(period + (50 * time.Millisecond)):
 	}
 
@@ -337,13 +337,13 @@ func testCypherErrorCausesReconnect(t *testing.T, theError error, expectReconnec
 		select {
 		case <-triedConnect:
 		case <-time.After(period + (50 * time.Millisecond)):
-			t.Fatal("shoulu have reconnected")
+			t.Fatal("should have reconnected")
 		}
 	}
 	// should not connect again
 	select {
 	case <-triedConnect:
-		t.Fatal("shoulu not have reconnected")
+		t.Fatal("should not have reconnected")
 	case <-time.After(period + (50 * time.Millisecond)):
 	}
 }
