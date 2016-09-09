@@ -22,6 +22,9 @@ type ConnectionConfig struct {
 	// Optional application id, used for logging and as part of the user agent
 	// in outgoing HTTP requests.
 	ApplicationId string
+	// BackgroundConnect indicates that NeoConnection should be available when
+	// neo4j is not available, and will connect and re-connect as required.
+	BackgroundConnect bool
 }
 
 func DefaultConnectionConfig() *ConnectionConfig {
@@ -41,6 +44,18 @@ func Connect(neoURL string, conf *ConnectionConfig) (NeoConnection, error) {
 	if conf == nil {
 		conf = DefaultConnectionConfig()
 	}
+
+	if !conf.BackgroundConnect {
+		return connectDefault(neoURL, conf)
+	} else {
+		f := func() (NeoConnection, error) {
+			return connectDefault(neoURL, conf)
+		}
+		return connectAuto(neoURL, f, 30*time.Second)
+	}
+}
+
+func connectDefault(neoURL string, conf *ConnectionConfig) (NeoConnection, error) {
 
 	db, err := neoism.Connect(neoURL)
 	if err != nil {
