@@ -19,6 +19,9 @@ type ConnectionConfig struct {
 	Transactional bool
 	// Optionally a custom http.Client can be supplied
 	HTTPClient *http.Client
+	// Optional application id, used for logging and as part of the user agent
+	// in outgoing HTTP requests.
+	ApplicationId string
 	// BackgroundConnect indicates that NeoConnection should be available when
 	// neo4j is not available, and will connect and re-connect as required.
 	BackgroundConnect bool
@@ -32,6 +35,7 @@ func DefaultConnectionConfig() *ConnectionConfig {
 			Transport: &http.Transport{
 				MaxIdleConnsPerHost: 100,
 			},
+			Timeout: 1 * time.Minute,
 		},
 	}
 }
@@ -60,6 +64,10 @@ func connectDefault(neoURL string, conf *ConnectionConfig) (NeoConnection, error
 
 	if conf.HTTPClient != nil {
 		db.Session.Client = conf.HTTPClient
+	}
+
+	if conf.ApplicationId != "" {
+		db.Session.Header.Set("User-Agent", conf.ApplicationId+" (via neoutils)")
 	}
 
 	var cr CypherRunner = db
