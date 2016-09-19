@@ -3,9 +3,11 @@ package neoutils
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/jmcvetta/neoism"
+	"go4.org/osutil"
 )
 
 type ConnectionConfig struct {
@@ -19,9 +21,6 @@ type ConnectionConfig struct {
 	Transactional bool
 	// Optionally a custom http.Client can be supplied
 	HTTPClient *http.Client
-	// Optional application id, used for logging and as part of the user agent
-	// in outgoing HTTP requests.
-	ApplicationId string
 	// BackgroundConnect indicates that NeoConnection should be available when
 	// neo4j is not available, and will connect and re-connect as required.
 	BackgroundConnect bool
@@ -66,8 +65,10 @@ func connectDefault(neoURL string, conf *ConnectionConfig) (NeoConnection, error
 		db.Session.Client = conf.HTTPClient
 	}
 
-	if conf.ApplicationId != "" {
-		db.Session.Header.Set("User-Agent", conf.ApplicationId+" (via neoutils)")
+	exeName, err := osutil.Executable()
+	if err == nil {
+		_, exeFile := filepath.Split(exeName)
+		db.Session.Header.Set("User-Agent", exeFile+" (using neoutils)")
 	}
 
 	var cr CypherRunner = db
