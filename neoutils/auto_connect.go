@@ -141,6 +141,10 @@ func (a *AutoConnectTransactional) EnsureConstraints(constraints map[string]stri
 	a.lk.Lock()
 	defer a.lk.Unlock()
 	a.constraints = append(a.constraints, constraints)
+	select {
+	case a.needsConnect <- struct{}{}:
+	default:
+	}
 	return nil
 }
 
@@ -148,5 +152,9 @@ func (a *AutoConnectTransactional) EnsureIndexes(indexes map[string]string) erro
 	a.lk.Lock()
 	defer a.lk.Unlock()
 	a.indexes = append(a.indexes, indexes)
+	select {
+	case a.needsConnect <- struct{}{}:
+	default:
+	}
 	return nil
 }
