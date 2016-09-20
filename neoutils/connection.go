@@ -36,6 +36,7 @@ func DefaultConnectionConfig() *ConnectionConfig {
 			},
 			Timeout: 1 * time.Minute,
 		},
+		BackgroundConnect: true,
 	}
 }
 
