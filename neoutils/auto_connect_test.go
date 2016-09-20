@@ -47,6 +47,32 @@ func TestAutoConnectConnects(t *testing.T) {
 	}
 }
 
+func TestNewIndexedAreCreatedAfterConnection(t *testing.T) {
+	mock := newMockNeoConnection()
+
+	connected := make(chan struct{}, 1)
+
+	conn, err := connectAuto("http://localhost:9999/db/data/", func() (NeoConnection, error) { connected <- struct{}{}; return mock, nil }, period)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	<-connected
+
+	// now mandate an index
+	err = conn.EnsureConstraints(map[string]string{"foo": "bar"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// should connect again
+	select {
+	case <-time.After(period + 50*time.Millisecond):
+		t.Fatalf("didn't connected again, despite new constraint needed")
+	case <-connected:
+	}
+}
+
 func TestAutoDoesIndexesAfterConnect(t *testing.T) {
 	mock := newMockNeoConnection()
 
