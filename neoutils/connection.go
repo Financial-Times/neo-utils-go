@@ -48,9 +48,16 @@ func Connect(neoURL string, conf *ConnectionConfig) (NeoConnection, error) {
 	if !conf.BackgroundConnect {
 		return connectDefault(neoURL, conf)
 	} else {
+		trying := make(chan struct{}, 1)
 		f := func() (NeoConnection, error) {
-			return connectDefault(neoURL, conf)
+			conn, err := connectDefault(neoURL, conf)
+			select {
+			case trying <- struct{}{}:
+			default:
+			}
+			return conn, err
 		}
+		defer func() { <-trying }()
 		return connectAuto(neoURL, f, 30*time.Second)
 	}
 }
