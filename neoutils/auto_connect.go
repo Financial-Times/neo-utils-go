@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
 )
 
@@ -114,6 +115,8 @@ func (a *AutoConnectTransactional) CypherBatch(queries []*neoism.CypherQuery) er
 		needReconnect := false
 
 		switch e := err.(type) {
+		case rwapi.ConstraintOrTransactionError:
+			// no reconnect needed
 		case *url.Error:
 			if !e.Temporary() {
 				needReconnect = true
