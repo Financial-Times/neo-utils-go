@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"fmt"
+	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 )
@@ -160,7 +161,7 @@ func TestAttemptToWriteConflictItem(t *testing.T) {
 	}()
 	err = <-errCh
 	assert.Error(err)
-	assert.IsType(&ConstraintViolationError{}, err)
+	assert.IsType(rwapi.ConstraintOrTransactionError{}, err)
 }
 
 type mockRunner struct {

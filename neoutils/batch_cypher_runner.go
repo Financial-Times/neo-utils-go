@@ -2,6 +2,7 @@ package neoutils
 
 import (
 	"encoding/json"
+	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
 	"github.com/rcrowley/go-metrics"
 	"log"
@@ -86,7 +87,7 @@ func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*neoism.CypherQ
 
 			for _, nerr := range neoErrMsg.Errors {
 				if nerr.Code == "Neo.ClientError.Schema.ConstraintViolation" {
-					return NewConstraintViolationError(nerr.Message, &neoErr)
+					return rwapi.ConstraintOrTransactionError{Message: nerr.Message}
 				}
 			}
 		}
