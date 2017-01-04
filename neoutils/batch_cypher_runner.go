@@ -86,7 +86,7 @@ func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*neoism.CypherQ
 			}
 
 			for _, nerr := range neoErrMsg.Errors {
-				if nerr.Code == "Neo.ClientError.Schema.ConstraintViolation" {
+				if nerr.Code == "Neo.ClientError.Schema.ConstraintViolation" || nerr.Code == "Neo.ClientError.Schema.ConstraintValidationFailed" {
 					return rwapi.ConstraintOrTransactionError{Message: nerr.Message}
 				}
 			}
