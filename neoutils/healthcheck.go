@@ -10,10 +10,17 @@ type AsyncHealthcheck struct {
 	connectionStatus error
 	checkTimestamp   time.Time
 	ticker           *time.Ticker
+	duration         time.Duration
 }
 
-func (ahc *AsyncHealthcheck) Initialise(cr CypherRunner, duration time.Duration) {
-	ahc.ticker = time.NewTicker(duration)
+func NewAsyncHealthcheck(duration time.Duration) *AsyncHealthcheck {
+	return &AsyncHealthcheck{
+		duration: duration,
+	}
+}
+
+func (ahc *AsyncHealthcheck) Initialise(cr CypherRunner) {
+	ahc.ticker = time.NewTicker(ahc.duration)
 
 	go func(ahc *AsyncHealthcheck) {
 		for t := range ahc.ticker.C {
