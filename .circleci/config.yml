@@ -6,24 +6,11 @@ jobs:
       - image: golang:1.8.3
         environment:
           GOPATH: /go
-          CIRCLE_TEST_REPORTS: /tmp/test-results
-          CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
       - image: neo4j:3.2.7-enterprise
         environment:
           NEO4J_URL: http://neo4j:foobar@localhost:7474/db/data/
     steps:
       - checkout
-      - run:
-          name: External Dependencies
-          command: |
-            go get -u github.com/mattn/goveralls
-            go get -u github.com/jstemmer/go-junit-report
-            go get -u github.com/haya14busa/goverage
-      - run:
-          name: Test Results
-          command: |
-            mkdir -p ${CIRCLE_TEST_REPORTS}
-            mkdir -p ${CIRCLE_COVERAGE_REPORT}
       - run:
           name: Go get
           command: go get -t -d -v ./...
@@ -36,13 +23,7 @@ jobs:
       - run:
           name: Run Tests
           command: |
-            go test -race -v ./... | /go/bin/go-junit-report > ${CIRCLE_TEST_REPORTS}/main.xml
-            goverage -covermode=atomic -race -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./...
-      - run:
-          name: Upload Coverage
-          command: /go/bin/goveralls -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
-      - store_test_results:
-          path: /tmp/test-results
+            go test -race -v ./... 
   dockerfile:
     working_directory: /neo-utils-go
     docker:
