@@ -31,9 +31,11 @@ jobs:
           name: Go Build
           command: go build -v
       - run:
+          name: Pre Tests
+          command: '/usr/bin/curl -u neo4j:neo4j -H "Content-Type: application/json" -X POST -d ''{"password":"foobar"}''  http://localhost:7474/user/neo4j/password'
+      - run:
           name: Run Tests
           command: |
-            'curl -u neo4j:neo4j -H "Content-Type: application/json" -X POST -d ''{"password":"foobar"}''  http://localhost:7474/user/neo4j/password'
             go test -race -v ./... | /go/bin/go-junit-report > ${CIRCLE_TEST_REPORTS}/main.xml
             goverage -covermode=atomic -race -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./...
       - run:
