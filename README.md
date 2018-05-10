@@ -1,4 +1,7 @@
 # neo-utils-go
+
+[![CircleCI](https://circleci.com/gh/Financial-Times/neo-utils-go.svg?style=svg)](https://circleci.com/gh/Financial-Times/neo-utils-go)
+
 Neo4j Utils in Go.
 
 Provides a wrapper for neoism.Database to output the database url in the String() method.
@@ -28,9 +31,9 @@ There are three metrics that this library will capture, using go-metrics:
  - execute-neo4j-batch: a timer measuring how long each batch or queries takes to run against neo4j
 
 To use the metrics, set up metrics in your application, for example to output to graphite.ft.com:
-   
+
     addr, _ := net.ResolveTCPAddr("tcp", graphiteTCPAddress)
-		go graphite.Graphite(metrics.DefaultRegistry, 1*time.Minute, graphitePrefix, addr) 
+		go graphite.Graphite(metrics.DefaultRegistry, 1*time.Minute, graphitePrefix, addr)
 
 where, for example:
 
