@@ -6,9 +6,10 @@ jobs:
       - image: golang:1.8.3
         environment:
           GOPATH: /go
+          NEO4J_URL: http://neo4j:foobar@localhost:7474/db/data/
       - image: neo4j:3.2.7-enterprise
         environment:
-          NEO4J_URL: http://neo4j:foobar@localhost:7474/db/data/
+          NEO4J_AUTH: none 
     steps:
       - checkout
       - run:
@@ -23,7 +24,7 @@ jobs:
       - run:
           name: Run Tests
           command: |
-            go test -race -v ./... 
+            go test -race -v ./...
 workflows:
   version: 2
   test-project:
