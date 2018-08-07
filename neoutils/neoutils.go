@@ -1,8 +1,9 @@
 package neoutils
 
 import (
-	log "github.com/sirupsen/logrus"
+	"errors"
 	"github.com/jmcvetta/neoism"
+	log "github.com/sirupsen/logrus"
 )
 
 // StringerDb wraps neoism Database to provide a String function, which outputs the database URL
@@ -14,9 +15,9 @@ func (sdb StringerDb) String() string {
 
 // Check will use the supplied CypherRunner to check connectivity to Neo4j
 func Check(cr CypherRunner) error {
-	results := []struct {
+	var results []struct {
 		node interface{}
-	}{}
+	}
 
 	query := &neoism.CypherQuery{
 		Statement: `MATCH (n) RETURN id(n) LIMIT 1`,
@@ -28,6 +29,37 @@ func Check(cr CypherRunner) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// CheckWritable calls the dbms.cluster.role() procedure and verifies the role if it's LEADER or not.
+func CheckWritable(cr CypherRunner) error {
+
+	var res []struct {
+		Role string `json:"role"`
+	}
+
+	query := &neoism.CypherQuery{
+		Statement: `CALL dbms.cluster.role()`,
+		Result:    &res,
+	}
+
+	err := cr.CypherBatch([]*neoism.CypherQuery{query})
+
+	if err != nil {
+		return err
+	}
+
+	if len(res) == 0 || res[0].Role == "" {
+		return errors.New("got empty response from dbms.cluster.role()")
+	}
+
+	role := res[0].Role
+
+	if role != "LEADER" {
+		return errors.New("role has to be LEADER for writing but it's " + role)
+	}
+
 	return nil
 }
 
