@@ -2,76 +2,74 @@ package neoutils
 
 import (
 	"errors"
+	"github.com/Financial-Times/go-logger"
 	"testing"
 
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"os"
 )
 
+func init() {
+	logger.InitLogger("test-neo4j-utils-go", "warn")
+}
+
 func TestIndexesGetCreatedIfMissing(t *testing.T) {
-	assert := assert.New(t)
 	mIM := mockIndexManager{}
 	indexes := map[string]string{
 		"Thing":   "uuid",
 		"Concept": "uuid"}
 
 	err := EnsureIndexes(mIM, indexes)
-	assert.NoError(err, "Unexpected error")
+	assert.NoError(t, err, "Unexpected error")
 }
 
 func TestIndexesAreNotRecreatedIfPresent(t *testing.T) {
-	assert := assert.New(t)
 	indexes := map[string]string{
 		"Thing": "uuid"}
 
-	existingIndexes := []*neoism.Index{&neoism.Index{PropertyKeys: []string{"uuid"}}}
+	existingIndexes := []*neoism.Index{{PropertyKeys: []string{"uuid"}}}
 
 	mIM := mockIndexManager{existingIndexes: existingIndexes}
 
 	err := EnsureIndexes(mIM, indexes)
-	assert.NoError(err, "Unexpected error")
+	assert.NoError(t, err, "Unexpected error")
 }
 
 func TestConstraintsAreCreatedIfMissing(t *testing.T) {
-	assert := assert.New(t)
 	mIM := mockIndexManager{}
 	constraints := map[string]string{
 		"Thing":   "uuid",
 		"Concept": "uuid"}
 
 	err := EnsureConstraints(mIM, constraints)
-	assert.NoError(err, "Unexpected error")
+	assert.NoError(t, err, "Unexpected error")
 }
 
 func TestConstraintsAreNotRecreatedIfPresent(t *testing.T) {
-	assert := assert.New(t)
 	constraints := map[string]string{
 		"Thing":   "uuid",
 		"Concept": "uuid"}
 
-	existingConstraints := []*neoism.UniqueConstraint{&neoism.UniqueConstraint{PropertyKeys: []string{"uuid"}}}
+	existingConstraints := []*neoism.UniqueConstraint{{PropertyKeys: []string{"uuid"}}}
 
 	mIM := mockIndexManager{existingConstraints: existingConstraints}
 
 	err := EnsureConstraints(mIM, constraints)
-	assert.NoError(err, "Unexpected error")
+	assert.NoError(t, err, "Unexpected error")
 }
 
 func TestCheckSucceedsIfCanConnectToNeo4j(t *testing.T) {
-	assert := assert.New(t)
 	mCR := mockCypherRunner{}
 	err := Check(mCR)
-	assert.NoError(err, "Unexpected error")
+	assert.NoError(t, err, "Unexpected error")
 
 }
 
 func TestCheckErrorsIfCannotConnectToNeo4j(t *testing.T) {
-	assert := assert.New(t)
 	mCR := mockCypherRunner{true}
 	err := Check(mCR)
-	assert.Error(err, "Didn't get expected error")
+	assert.Error(t, err, "Didn't get expected error")
 }
 
 type mockIndexManager struct {
@@ -125,7 +123,6 @@ func (mCR mockCypherRunner) String() string {
 }
 
 func connectTest(t *testing.T) *neoism.Database {
-	log.SetFlags(log.Ltime | log.Lshortfile)
 	neo4jURL := os.Getenv("NEO4J_URL")
 	if neo4jURL == "" {
 		neo4jURL = "http://localhost:7474/db/data"
@@ -145,7 +142,7 @@ func connectTest(t *testing.T) *neoism.Database {
 func cleanup(t *testing.T, db *neoism.Database) {
 
 	err := db.CypherBatch([]*neoism.CypherQuery{
-		&neoism.CypherQuery{
+		{
 			Statement: `MATCH (x:NeoUtilsTest) DETACH DELETE x`,
 		},
 	})
@@ -156,7 +153,7 @@ func cleanup(t *testing.T, db *neoism.Database) {
 
 func cleanupConstraints(t *testing.T, db *neoism.Database) {
 	err := db.CypherBatch([]*neoism.CypherQuery{
-		&neoism.CypherQuery{
+		{
 			Statement: `DROP CONSTRAINT ON (x:NeoUtilsTest) ASSERT x.name IS UNIQUE`,
 		},
 	})

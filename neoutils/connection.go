@@ -2,6 +2,7 @@ package neoutils
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -32,9 +33,18 @@ func DefaultConnectionConfig() *ConnectionConfig {
 		Transactional: true,
 		HTTPClient: &http.Client{
 			Transport: &http.Transport{
-				MaxIdleConnsPerHost: 100,
+				DialContext: (&net.Dialer{
+					Timeout:   60 * time.Second,
+					KeepAlive: 60 * time.Second,
+					DualStack: true,
+				}).DialContext,
+				MaxIdleConnsPerHost:   100,
+				MaxIdleConns:          100,
+				IdleConnTimeout:       90 * time.Second, // from DefaultTransport
+				TLSHandshakeTimeout:   10 * time.Second, // from DefaultTransport
+				ExpectContinueTimeout: 1 * time.Second,  // from DefaultTransport
 			},
-			Timeout: 1 * time.Minute,
+			Timeout: 60 * time.Second,
 		},
 		BackgroundConnect: true,
 	}

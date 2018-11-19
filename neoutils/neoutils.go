@@ -2,8 +2,8 @@ package neoutils
 
 import (
 	"errors"
+	log "github.com/Financial-Times/go-logger"
 	"github.com/jmcvetta/neoism"
-	log "github.com/sirupsen/logrus"
 )
 
 // StringerDb wraps neoism Database to provide a String function, which outputs the database URL
