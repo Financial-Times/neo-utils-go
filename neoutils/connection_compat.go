@@ -1,7 +1,7 @@
 package neoutils
 
 import (
-	"log"
+	log "github.com/Financial-Times/go-logger"
 
 	"github.com/jmcvetta/neoism"
 )

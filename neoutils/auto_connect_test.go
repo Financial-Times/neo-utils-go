@@ -9,7 +9,7 @@ import (
 	"github.com/jmcvetta/neoism"
 )
 
-var period time.Duration = 100 * time.Millisecond
+var period = 100 * time.Millisecond
 
 func TestAutoConnectBadURL(t *testing.T) {
 	mock := newMockNeoConnection()
