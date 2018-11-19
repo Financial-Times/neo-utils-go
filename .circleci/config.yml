@@ -3,18 +3,31 @@ jobs:
   build:
     working_directory: /go/src/github.com/Financial-Times/neo-utils-go
     docker:
-      - image: golang:1.8.3
+      - image: circleci/golang:1.11
         environment:
-          GOPATH: /go
+          CIRCLE_TEST_REPORTS: /tmp/test-results
+          CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
           NEO4J_URL: http://neo4j:foobar@localhost:7474/db/data/
       - image: neo4j:3.2.7-enterprise
         environment:
-          NEO4J_AUTH: none 
+          NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+          NEO4J_AUTH: none
     steps:
       - checkout
       - run:
-          name: Go get
-          command: go get -t -d -v ./...
+          name: External Dependencies
+          command: |
+            go get -u github.com/mattn/goveralls
+            go get -u github.com/jstemmer/go-junit-report
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      - run:
+          name: Make result folders
+          command: |
+            mkdir -p ${CIRCLE_TEST_REPORTS}
+            mkdir -p ${CIRCLE_COVERAGE_REPORT}
+      - run:
+          name: Download vendored dependencies
+          command: dep ensure -v -vendor-only
       - run:
           name: Go Build
           command: go build -v
@@ -23,8 +36,7 @@ jobs:
           command: '/usr/bin/curl -u neo4j:neo4j -H "Content-Type: application/json" -X POST -d ''{"password":"foobar"}''  http://localhost:7474/user/neo4j/password'
       - run:
           name: Run Tests
-          command: |
-            go test -race -v ./...
+          command: go test -v -race -cover -coverprofile=${CIRCLE_COVERAGE_REPORT}/coverage.out ./... | go-junit-report > ${CIRCLE_TEST_REPORTS}/junit.xml
 workflows:
   version: 2
   test-project:
