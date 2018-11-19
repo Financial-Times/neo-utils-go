@@ -81,7 +81,7 @@ func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*neoism.CypherQ
 			}{}
 
 			if jsonErr := json.Unmarshal([]byte(neoErr.Message), &neoErrMsg); jsonErr != nil {
-				log.Errorf("ERROR Got error trying to process Neo Error Message, error=%v", jsonErr)
+				log.WithError(jsonErr).Error("ERROR Got error trying to process Neo Error Message")
 				return err
 			}
 

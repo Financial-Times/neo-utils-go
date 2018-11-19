@@ -60,7 +60,7 @@ func (a *AutoConnectTransactional) mainLoop() {
 			if err == nil {
 				break
 			}
-			log.Warnf("connection to neo4j failed. Sleeping for %s : %v", a.delay, err.Error())
+			log.WithError(err).Warnf("connection to neo4j failed. Sleeping for %s", a.delay)
 			time.Sleep(a.delay)
 		}
 
@@ -122,7 +122,7 @@ func (a *AutoConnectTransactional) CypherBatch(queries []*neoism.CypherQuery) er
 				needReconnect = true
 			}
 		default:
-			log.Warnf("Unhandled error type. Assuming a reconnect is required %T %v", err, err)
+			log.WithError(err).Warnf("Unhandled error type. Assuming a reconnect is required %T", err)
 			needReconnect = true
 		}
 
