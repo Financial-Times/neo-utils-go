@@ -2,107 +2,146 @@
 
 
 [[projects]]
+  digest = "1:ed7764f833c69827c95ecc7df89e6dd562b2663941f952f82c43dbac3d35c29e"
   name = "github.com/Financial-Times/go-logger"
   packages = ["."]
+  pruneopts = "UT"
   revision = "febee6537e90971bab6f6fe60b71b4a0562dcab3"
   version = "1.0.0"
 
 [[projects]]
+  digest = "1:cd53695006485e7005389f4b479da43782960a4773f8223a56aff84406fa6698"
   name = "github.com/Financial-Times/up-rw-app-api-go"
   packages = ["rwapi"]
+  pruneopts = "UT"
   revision = "d9d93a1f689538313d12fee6f5f10715cfe280e0"
   version = "1.0.0"
 
 [[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
+  pruneopts = "UT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
 
 [[projects]]
+  digest = "1:7902c7a299724335a6f73514193afb51c82f09893a467f65f679807a9bb2a884"
   name = "github.com/jmcvetta/neoism"
   packages = ["."]
+  pruneopts = "UT"
   revision = "c37ec30845b63d9f168f55e837c787e08a15e9a6"
   version = "v1.3.1"
 
 [[projects]]
   branch = "master"
+  digest = "1:c32290d024281ffba4a3dd53d65e2e48103262b4757fc3fcb3d3470852753e7f"
   name = "github.com/jmcvetta/randutil"
   packages = ["."]
+  pruneopts = "UT"
   revision = "2bb1b664bcff821e02b2a0644cd29c7e824d54f8"
 
 [[projects]]
+  digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
+  pruneopts = "UT"
   revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:ca955a9cd5b50b0f43d2cc3aeb35c951473eeca41b34eb67507f1dbcc0542394"
   name = "github.com/kr/pretty"
   packages = ["."]
+  pruneopts = "UT"
   revision = "73f6ac0b30a98e433b289500d779f50c1a6f0712"
   version = "v0.1.0"
 
 [[projects]]
+  digest = "1:15b5cc79aad436d47019f814fde81a10221c740dc8ddf769221a65097fb6c2e9"
   name = "github.com/kr/text"
   packages = ["."]
+  pruneopts = "UT"
   revision = "e2ffdb16a802fe2bb95e2e35ff34f0e53aeef34f"
   version = "v0.1.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = "UT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:d38f81081a389f1466ec98192cf9115a82158854d6f01e1c23e2e7554b97db71"
   name = "github.com/rcrowley/go-metrics"
   packages = ["."]
+  pruneopts = "UT"
   revision = "3113b8401b8a98917cde58f8bbd42a1b1c03b1fd"
 
 [[projects]]
+  digest = "1:69b1cc331fca23d702bd72f860c6a647afd0aa9fcbc1d0659b1365e26546dd70"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
+  pruneopts = "UT"
   revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:18752d0b95816a1b777505a97f71c7467a8445b8ffb55631a7bf779f6ba4fa83"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
+  pruneopts = "UT"
   revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
   version = "v1.2.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:e4fe44b4ad457fd027f64318b963be3af4287bf5b842c0b621bf24f7dcdeccfb"
   name = "go4.org"
   packages = ["osutil"]
+  pruneopts = "UT"
   revision = "00e24f1b25994999399dee600cb8f35a45f519dc"
 
 [[projects]]
   branch = "master"
+  digest = "1:3f3a05ae0b95893d90b9b3b5afdb79a9b3d96e4e36e099d841ae602e4aca0da8"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
+  pruneopts = "UT"
   revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
 
 [[projects]]
   branch = "master"
+  digest = "1:a089387bbfcfa884e5aafeebb85929993195bb8959766b1d20102841d47e0b0e"
   name = "golang.org/x/sys"
   packages = [
     "unix",
-    "windows"
+    "windows",
   ]
+  pruneopts = "UT"
   revision = "93218def8b18e66adbdab3eca8ec334700329f1f"
 
 [[projects]]
+  digest = "1:c321f7496d1bbb2340c4e0a789d9d8d9b755be8cf51b865f5da042aae0f4986c"
   name = "gopkg.in/jmcvetta/napping.v3"
   packages = ["."]
+  pruneopts = "UT"
   revision = "4c7b4b235c63152afa9a1c6384e708e0fbfd77ca"
   version = "v3.2.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7a39a047a5cc1792877423b133ecf9e3a8678b2bb3d91cdfd94194e2e5934299"
+  input-imports = [
+    "github.com/Financial-Times/go-logger",
+    "github.com/Financial-Times/up-rw-app-api-go/rwapi",
+    "github.com/jmcvetta/neoism",
+    "github.com/rcrowley/go-metrics",
+    "github.com/stretchr/testify/assert",
+    "go4.org/osutil",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

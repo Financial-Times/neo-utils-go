@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/Financial-Times/go-logger"
+
 	"github.com/jmcvetta/neoism"
 	"go4.org/osutil"
 )
@@ -48,6 +50,12 @@ func DefaultConnectionConfig() *ConnectionConfig {
 		},
 		BackgroundConnect: true,
 	}
+}
+
+//We need to initialize the logger as this library relies on an initialized global variable for the logger object. 
+//Otherwise dependent services that don't initialize this global object get errors using the library.
+func init() {
+	logger.InitDefaultLogger("neo4j-utils-go")
 }
 
 func Connect(neoURL string, conf *ConnectionConfig) (NeoConnection, error) {
