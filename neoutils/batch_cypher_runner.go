@@ -2,6 +2,7 @@ package neoutils
 
 import (
 	"encoding/json"
+
 	log "github.com/Financial-Times/go-logger"
 	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
