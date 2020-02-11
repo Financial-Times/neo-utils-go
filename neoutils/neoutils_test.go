@@ -2,29 +2,28 @@ package neoutils
 
 import (
 	"errors"
-	"github.com/Financial-Times/go-logger"
 	"testing"
 
+	"os"
+
+	"github.com/Financial-Times/go-logger/v2"
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
-	"os"
 )
 
-func init() {
-	logger.InitLogger("test-neo4j-utils-go", "warn")
-}
-
 func TestIndexesGetCreatedIfMissing(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mIM := mockIndexManager{}
 	indexes := map[string]string{
 		"Thing":   "uuid",
 		"Concept": "uuid"}
 
-	err := EnsureIndexes(mIM, indexes)
+	err := EnsureIndexes(mIM, indexes, l)
 	assert.NoError(t, err, "Unexpected error")
 }
 
 func TestIndexesAreNotRecreatedIfPresent(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	indexes := map[string]string{
 		"Thing": "uuid"}
 
@@ -32,21 +31,23 @@ func TestIndexesAreNotRecreatedIfPresent(t *testing.T) {
 
 	mIM := mockIndexManager{existingIndexes: existingIndexes}
 
-	err := EnsureIndexes(mIM, indexes)
+	err := EnsureIndexes(mIM, indexes, l)
 	assert.NoError(t, err, "Unexpected error")
 }
 
 func TestConstraintsAreCreatedIfMissing(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mIM := mockIndexManager{}
 	constraints := map[string]string{
 		"Thing":   "uuid",
 		"Concept": "uuid"}
 
-	err := EnsureConstraints(mIM, constraints)
+	err := EnsureConstraints(mIM, constraints, l)
 	assert.NoError(t, err, "Unexpected error")
 }
 
 func TestConstraintsAreNotRecreatedIfPresent(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	constraints := map[string]string{
 		"Thing":   "uuid",
 		"Concept": "uuid"}
@@ -55,7 +56,7 @@ func TestConstraintsAreNotRecreatedIfPresent(t *testing.T) {
 
 	mIM := mockIndexManager{existingConstraints: existingConstraints}
 
-	err := EnsureConstraints(mIM, constraints)
+	err := EnsureConstraints(mIM, constraints, l)
 	assert.NoError(t, err, "Unexpected error")
 }
 

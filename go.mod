@@ -3,7 +3,7 @@ module github.com/Financial-Times/neo-utils-go/v2
 go 1.13
 
 require (
-	github.com/Financial-Times/go-logger v0.0.0-20180323124113-febee6537e90
+	github.com/Financial-Times/go-logger/v2 v2.0.1
 	github.com/Financial-Times/up-rw-app-api-go v0.0.0-20170710125828-d9d93a1f6895
 	github.com/jmcvetta/neoism v1.3.1
 	github.com/jmcvetta/randutil v0.0.0-20150817122601-2bb1b664bcff // indirect

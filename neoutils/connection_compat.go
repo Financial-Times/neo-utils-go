@@ -1,13 +1,11 @@
 package neoutils
 
 import (
-	log "github.com/Financial-Times/go-logger"
-
 	"github.com/jmcvetta/neoism"
 )
 
 func UnderlyingDB(con NeoConnection) *neoism.Database {
-	log.Println("App is using neoism connection directly. Please update when possible to avoid this.")
+	//App is using neoism connection directly. Please update when possible to avoid this.
 
 	switch c := con.(type) {
 	case *DefaultNeoConnection:
