@@ -6,34 +6,38 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Financial-Times/go-logger/v2"
 	"github.com/jmcvetta/neoism"
 )
 
 var period = 100 * time.Millisecond
 
 func TestAutoConnectBadURL(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mock := newMockNeoConnection()
-	if _, err := connectAuto("", func() (NeoConnection, error) { return mock, nil }, period); err == nil {
+	if _, err := connectAuto("", func() (NeoConnection, error) { return mock, nil }, period, l); err == nil {
 		t.Error("expected an error with bad url")
 	}
-	if _, err := connectAuto("foo", func() (NeoConnection, error) { return mock, nil }, period); err == nil {
+	if _, err := connectAuto("foo", func() (NeoConnection, error) { return mock, nil }, period, l); err == nil {
 		t.Error("expected an error with bad url")
 	}
 }
 
 func TestAutoConnectInitialWithDBDown(t *testing.T) {
-	_, err := connectAuto("http://valid.url/foo/bar/", func() (NeoConnection, error) { return nil, errors.New("db down") }, period)
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
+	_, err := connectAuto("http://valid.url/foo/bar/", func() (NeoConnection, error) { return nil, errors.New("db down") }, period, l)
 	if err != nil {
 		t.Errorf("didn't expect an error, despite neo being down. got %v, a %T\n", err, err)
 	}
 }
 
 func TestAutoConnectConnects(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mock := newMockNeoConnection()
 
 	connected := make(chan struct{}, 1)
 
-	_, err := connectAuto("http://localhost:9999/db/data/", func() (NeoConnection, error) { connected <- struct{}{}; return mock, nil }, period)
+	_, err := connectAuto("http://localhost:9999/db/data/", func() (NeoConnection, error) { connected <- struct{}{}; return mock, nil }, period, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,11 +52,12 @@ func TestAutoConnectConnects(t *testing.T) {
 }
 
 func TestNewIndexedAreCreatedAfterConnection(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mock := newMockNeoConnection()
 
 	connected := make(chan struct{}, 1)
 
-	conn, err := connectAuto("http://localhost:9999/db/data/", func() (NeoConnection, error) { connected <- struct{}{}; return mock, nil }, period)
+	conn, err := connectAuto("http://localhost:9999/db/data/", func() (NeoConnection, error) { connected <- struct{}{}; return mock, nil }, period, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,6 +79,7 @@ func TestNewIndexedAreCreatedAfterConnection(t *testing.T) {
 }
 
 func TestAutoDoesIndexesAfterConnect(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mock := newMockNeoConnection()
 
 	allowConnect := make(chan struct{})
@@ -89,7 +95,7 @@ func TestAutoDoesIndexesAfterConnect(t *testing.T) {
 		return mock, nil
 	}
 
-	conn, err := connectAuto("http://localhost:9999/db/data/", connect, period)
+	conn, err := connectAuto("http://localhost:9999/db/data/", connect, period, l)
 
 	if err != nil {
 		t.Fatal(err)
@@ -149,6 +155,7 @@ func TestAutoDoesIndexesAfterConnect(t *testing.T) {
 }
 
 func TestFailIndexesFailsConnect(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mock := newMockNeoConnection()
 
 	succeed := make(chan struct{})
@@ -159,7 +166,7 @@ func TestFailIndexesFailsConnect(t *testing.T) {
 		return mock, nil
 	}
 
-	conn, err := connectAuto("http://localhost:9999/db/data/", connect, period)
+	conn, err := connectAuto("http://localhost:9999/db/data/", connect, period, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,6 +229,7 @@ func TestFailIndexesFailsConnect(t *testing.T) {
 }
 
 func TestFailConstraintsFailsConnect(t *testing.T) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mock := newMockNeoConnection()
 
 	succeed := make(chan struct{})
@@ -232,7 +240,7 @@ func TestFailConstraintsFailsConnect(t *testing.T) {
 		return mock, nil
 	}
 
-	conn, err := connectAuto("http://localhost:9999/db/data/", connect, period)
+	conn, err := connectAuto("http://localhost:9999/db/data/", connect, period, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,8 +304,8 @@ func TestFailConstraintsFailsConnect(t *testing.T) {
 }
 
 func TestCypherFailsBeforeConnected(t *testing.T) {
-
-	conn, err := connectAuto("http://valid.url/foo/bar/", func() (NeoConnection, error) { return nil, errors.New("db down") }, period)
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
+	conn, err := connectAuto("http://valid.url/foo/bar/", func() (NeoConnection, error) { return nil, errors.New("db down") }, period, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -328,6 +336,7 @@ func TestCypherErrorPermanentURLErrorCausesReconnect(t *testing.T) {
 }
 
 func testCypherErrorCausesReconnect(t *testing.T, theError error, expectReconnect bool) {
+	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mock := newMockNeoConnection()
 	mock.cypherFunc = func(queries []*neoism.CypherQuery) error {
 		return theError
@@ -340,7 +349,7 @@ func testCypherErrorCausesReconnect(t *testing.T, theError error, expectReconnec
 		return mock, nil
 	}
 
-	conn, err := connectAuto("http://localhost:9999/db/data/", connect, period)
+	conn, err := connectAuto("http://localhost:9999/db/data/", connect, period, l)
 	if err != nil {
 		t.Fatal(err)
 	}

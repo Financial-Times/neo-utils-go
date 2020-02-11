@@ -3,10 +3,11 @@ package neoutils
 import (
 	"errors"
 	"fmt"
-	log "github.com/Financial-Times/go-logger"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/Financial-Times/go-logger/v2"
 
 	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
@@ -17,7 +18,7 @@ var (
 	notConnectedError = errors.New("not connected to neo4j database")
 )
 
-func connectAuto(neoURL string, connect func() (NeoConnection, error), delay time.Duration) (NeoConnection, error) {
+func connectAuto(neoURL string, connect func() (NeoConnection, error), delay time.Duration, log *logger.UPPLogger) (NeoConnection, error) {
 
 	// check that at least we have a valid url
 	parsed, _ := url.Parse(neoURL)
@@ -30,6 +31,7 @@ func connectAuto(neoURL string, connect func() (NeoConnection, error), delay tim
 		connect:      connect,
 		needsConnect: make(chan struct{}, 1),
 		delay:        delay,
+		log:          log,
 	}
 
 	a.needsConnect <- struct{}{}
@@ -49,6 +51,7 @@ type AutoConnectTransactional struct {
 	constraints []map[string]string
 
 	needsConnect chan struct{}
+	log          *logger.UPPLogger
 }
 
 func (a *AutoConnectTransactional) mainLoop() {
@@ -60,11 +63,11 @@ func (a *AutoConnectTransactional) mainLoop() {
 			if err == nil {
 				break
 			}
-			log.WithError(err).Warnf("connection to neo4j failed. Sleeping for %s", a.delay)
+			a.log.WithError(err).Warnf("connection to neo4j failed. Sleeping for %s", a.delay)
 			time.Sleep(a.delay)
 		}
 
-		log.Infof("connected to %v", a.url)
+		a.log.Infof("connected to %v", a.url)
 	}
 }
 
@@ -122,7 +125,7 @@ func (a *AutoConnectTransactional) CypherBatch(queries []*neoism.CypherQuery) er
 				needReconnect = true
 			}
 		default:
-			log.WithError(err).Warnf("Unhandled error type. Assuming a reconnect is required %T", err)
+			a.log.WithError(err).Warnf("unhandled error type. Assuming a reconnect is required %T", err)
 			needReconnect = true
 		}
 
