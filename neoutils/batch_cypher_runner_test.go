@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Financial-Times/go-logger/v2"
-
 	"fmt"
 
 	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
@@ -15,9 +13,8 @@ import (
 )
 
 func TestAllQueriesRun(t *testing.T) {
-	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mr := &mockRunner{}
-	batchCypherRunner := NewBatchCypherRunner(mr, 3, l)
+	batchCypherRunner := NewBatchCypherRunner(mr, 3)
 
 	errCh := make(chan error)
 
@@ -50,9 +47,8 @@ func TestAllQueriesRun(t *testing.T) {
 }
 
 func TestQueryBatching(t *testing.T) {
-	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	dr := &delayRunner{make(chan []*neoism.CypherQuery)}
-	batchCypherRunner := NewBatchCypherRunner(dr, 3, l)
+	batchCypherRunner := NewBatchCypherRunner(dr, 3)
 
 	errCh := make(chan error)
 
@@ -97,9 +93,8 @@ func TestQueryBatching(t *testing.T) {
 }
 
 func TestEveryoneGetsErrorOnFailure(t *testing.T) {
-	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mr := &failRunner{}
-	batchCypherRunner := NewBatchCypherRunner(mr, 3, l)
+	batchCypherRunner := NewBatchCypherRunner(mr, 3)
 
 	errCh := make(chan error)
 
@@ -125,11 +120,9 @@ func TestEveryoneGetsErrorOnFailure(t *testing.T) {
 }
 
 func TestAttemptToWriteConflictItem(t *testing.T) {
-	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
-
 	db := connectTest(t)
 	mr := StringerDb{db}
-	batchCypherRunner := NewBatchCypherRunner(mr, 3, l)
+	batchCypherRunner := NewBatchCypherRunner(mr, 3)
 	errCh := make(chan error)
 
 	defer cleanup(t, db)

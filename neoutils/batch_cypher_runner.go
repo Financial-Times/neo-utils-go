@@ -2,15 +2,15 @@ package neoutils
 
 import (
 	"encoding/json"
+	"fmt"
 
-	"github.com/Financial-Times/go-logger/v2"
 	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
 	"github.com/rcrowley/go-metrics"
 )
 
-func NewBatchCypherRunner(cypherRunner CypherRunner, count int, log *logger.UPPLogger) CypherRunner {
-	cr := BatchCypherRunner{cypherRunner, make(chan cypherQueryBatch, count), count, log}
+func NewBatchCypherRunner(cypherRunner CypherRunner, count int) CypherRunner {
+	cr := BatchCypherRunner{cypherRunner, make(chan cypherQueryBatch, count), count}
 
 	go cr.batcher()
 
@@ -21,7 +21,6 @@ type BatchCypherRunner struct {
 	cr    CypherRunner
 	ch    chan cypherQueryBatch
 	count int
-	log *logger.UPPLogger
 }
 
 func (bcr *BatchCypherRunner) CypherBatch(queries []*neoism.CypherQuery) error {
@@ -83,8 +82,7 @@ func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*neoism.CypherQ
 			}{}
 
 			if jsonErr := json.Unmarshal([]byte(neoErr.Message), &neoErrMsg); jsonErr != nil {
-				bcr.log.WithError(jsonErr).Error("ERROR Got error trying to process Neo Error Message")
-				return err
+				return fmt.Errorf("failed to process Neo error message: %w", err)
 			}
 
 			for _, nerr := range neoErrMsg.Errors {

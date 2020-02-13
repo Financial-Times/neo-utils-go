@@ -2,6 +2,8 @@ package neoutils
 
 import (
 	"errors"
+	"fmt"
+
 	"github.com/Financial-Times/go-logger/v2"
 	"github.com/jmcvetta/neoism"
 )
@@ -63,7 +65,7 @@ func CheckWritable(cr CypherRunner) error {
 	return nil
 }
 
-// EnsureIndexes will, for a map of labels and properties, check whether an index exists for a given property on a given label, and if missing will create one
+// EnsureIndexes will, for a map of labels and properties, check whether an index exists for a given property on a given label, and if missing will create one.
 func EnsureIndexes(im IndexManager, indexes map[string]string, log *logger.UPPLogger) error {
 	// log is an optional parameter
 	if log == nil {
@@ -112,7 +114,7 @@ func ensureIndex(im IndexManager, label string, propertyName string, log *logger
 	}
 
 	if !indexFound {
-		log.Infof("creating index for type %s on property %s\n", label, propertyName)
+		log.Infof("Creating index for type %s on property %s\n", label, propertyName)
 		_, err := im.CreateIndex(label, propertyName)
 		if err != nil {
 			return err
@@ -127,11 +129,10 @@ func ensureConstraint(im IndexManager, label string, propertyName string, log *l
 
 	if err != nil {
 		if err == neoism.NotFound {
-			log.Infof("creating unique constraint for type %s on property %s\n", label, propertyName)
+			log.Infof("Creating unique constraint for type %s on property %s\n", label, propertyName)
 			_, err = im.CreateUniqueConstraint(label, propertyName)
 			if err != nil {
-				log.Errorf("cannot create constraint for type %s on property %s\n", label, propertyName)
-				return err
+				return fmt.Errorf("cannot create constraint for type %s on property %s\n:, %w", label, propertyName, err)
 			}
 		}
 		return err
