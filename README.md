@@ -4,24 +4,39 @@
 
 Neo4j Utils in Go.
 
-Provides a wrapper for neoism.Database to output the database url in the String() method.
+Provides a wrapper for neoism.Database to output the database URL in the String() method.
 
-Provides and EnsureIndexes function that will take a map of label/property pairs,
-and an IndexManager (normally this will be a neoism.Database) and checks whether those
+Provides an EnsureIndexes function that will take a map of label/property pairs,
+and an IndexManager (normally this will be a neoism.Database) and checks whether these
 indexes exist. If not, they are created.
 
 ## Batch Cypher Runner
 Currently supports batch running of queries.
 
-import "github.com/Financial-Times/neo-cypher-runner-go"
+1. Import "github.com/Financial-Times/neo-cypher-runner-go"
 
-Create a batch cypher runner like this:
+2. Create a batch cypher runner like this:
 
     cypherRunner := neocypherrunner.NewBatchCypherRunner(db, maxBatchSize)
 
-Execute a batch of queries like this:
+3. Execute a batch of queries like this:
 
     cypherRunner.CypherBatch([]*neoism.CypherQuery{query})
+
+### Logging
+To use neo-utils-go in a service, follow these steps:
+1. Migrate the service to Go modules and then to go-logger v2
+2. Update the neo-utils-go version to v2.
+3. Initialize the logger and add the instance to the function parameters in any of the neo-utils-go functions that requires it. 
+The logger initialization will vary depending on the service logs.
+// Non-JSON
+l := logger.NewUnstructuredLogger()
+// JSON, no "@time" key
+l := logger.NewUPPLogger(*serviceName, "INFO")
+// JSON + @time
+logConf := logger.KeyNamesConfig{KeyTime: "@time"}
+l := logger.NewUPPLogger(*serviceName, "INFO", logConf)
+The logger is an optional parameter. If it is not provided by the user, the library will create a logger with an INFO logging level.
 
 ### Metrics
 There are three metrics that this library will capture, using go-metrics:
