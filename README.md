@@ -39,3 +39,6 @@ where, for example:
 
  - graphiteTCPAddress is for graphite.ft.com:2003
  - and graphitePrefix is unique for your service, e.g. content.[env].people.rw.neo4j.[hostname] - you should probably set this from environment-specific configuration, e.g. hiera data
+
+### Logging
+This library uses go-logger v2 for logging. The logger is an optional parameter. If it is not provided by the user, the library creates a logger with an INFO logging level.
