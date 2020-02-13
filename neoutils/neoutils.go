@@ -2,6 +2,8 @@ package neoutils
 
 import (
 	"errors"
+	"fmt"
+
 	"github.com/Financial-Times/go-logger/v2"
 	"github.com/jmcvetta/neoism"
 )
@@ -122,8 +124,7 @@ func ensureConstraint(im IndexManager, label string, propertyName string, log *l
 			log.Infof("creating unique constraint for type %s on property %s\n", label, propertyName)
 			_, err = im.CreateUniqueConstraint(label, propertyName)
 			if err != nil {
-				log.Errorf("cannot create constraint for type %s on property %s\n", label, propertyName)
-				return err
+				return fmt.Errorf("cannot create constraint for type %s on property %s\n, %w", label, propertyName, err)
 			}
 		}
 		return err

@@ -78,7 +78,7 @@ func Connect(neoURL string, conf *ConnectionConfig, log *logger.UPPLogger) (NeoC
 }
 
 func connectDefault(neoURL string, conf *ConnectionConfig, log *logger.UPPLogger) (NeoConnection, error) {
-	
+
 	db, err := neoism.Connect(neoURL)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func connectDefault(neoURL string, conf *ConnectionConfig, log *logger.UPPLogger
 	}
 
 	if conf.BatchSize > 0 {
-		cr = NewBatchCypherRunner(cr, conf.BatchSize, log)
+		cr = NewBatchCypherRunner(cr, conf.BatchSize)
 	}
 
 	ie := &defaultIndexEnsurer{db, log}
@@ -138,7 +138,7 @@ func (c *DefaultNeoConnection) String() string {
 var _ NeoConnection = (*DefaultNeoConnection)(nil) //{}
 
 type defaultIndexEnsurer struct {
-	db *neoism.Database
+	db  *neoism.Database
 	log *logger.UPPLogger
 }
 
