@@ -2,19 +2,15 @@ package neoutils
 
 import (
 	"errors"
-	"github.com/Financial-Times/go-logger"
 	"testing"
 	"time"
 
 	"fmt"
+
 	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 )
-
-func init() {
-	logger.InitLogger("test-neo4j-utils-go", "warn")
-}
 
 func TestAllQueriesRun(t *testing.T) {
 	mr := &mockRunner{}

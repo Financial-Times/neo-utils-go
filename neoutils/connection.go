@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/Financial-Times/go-logger/v2"
 	"github.com/jmcvetta/neoism"
 	"go4.org/osutil"
 )
@@ -50,17 +51,25 @@ func DefaultConnectionConfig() *ConnectionConfig {
 	}
 }
 
-func Connect(neoURL string, conf *ConnectionConfig) (NeoConnection, error) {
+//This is the entrypoint for the services trying to connect to Neo4j, where
+//neoURL - the path to Neo4j,
+//conf - the configuration required for logging to Neo4j,
+//log - an optional parameter for logging messages. If not provided, we initialize an object of the type go-logger v2
+func Connect(neoURL string, conf *ConnectionConfig, log *logger.UPPLogger) (NeoConnection, error) {
+	if log == nil {
+		log = logger.NewUPPInfoLogger("neo-utils-go")
+	}
+
 	if conf == nil {
 		conf = DefaultConnectionConfig()
 	}
 
 	if !conf.BackgroundConnect {
-		return connectDefault(neoURL, conf)
+		return connectDefault(neoURL, conf, log)
 	} else {
 		trying := make(chan struct{}, 1)
 		f := func() (NeoConnection, error) {
-			conn, err := connectDefault(neoURL, conf)
+			conn, err := connectDefault(neoURL, conf, log)
 			select {
 			case trying <- struct{}{}:
 			default:
@@ -68,11 +77,11 @@ func Connect(neoURL string, conf *ConnectionConfig) (NeoConnection, error) {
 			return conn, err
 		}
 		defer func() { <-trying }()
-		return connectAuto(neoURL, f, 30*time.Second)
+		return connectAuto(neoURL, f, 30*time.Second, log)
 	}
 }
 
-func connectDefault(neoURL string, conf *ConnectionConfig) (NeoConnection, error) {
+func connectDefault(neoURL string, conf *ConnectionConfig, log *logger.UPPLogger) (NeoConnection, error) {
 
 	db, err := neoism.Connect(neoURL)
 	if err != nil {
@@ -100,7 +109,7 @@ func connectDefault(neoURL string, conf *ConnectionConfig) (NeoConnection, error
 		cr = NewBatchCypherRunner(cr, conf.BatchSize)
 	}
 
-	ie := &defaultIndexEnsurer{db}
+	ie := &defaultIndexEnsurer{db, log}
 
 	return &DefaultNeoConnection{neoURL, cr, ie, db}, nil
 }
@@ -133,13 +142,14 @@ func (c *DefaultNeoConnection) String() string {
 var _ NeoConnection = (*DefaultNeoConnection)(nil) //{}
 
 type defaultIndexEnsurer struct {
-	db *neoism.Database
+	db  *neoism.Database
+	log *logger.UPPLogger
 }
 
 func (ie *defaultIndexEnsurer) EnsureIndexes(indexes map[string]string) error {
-	return EnsureIndexes(ie.db, indexes)
+	return EnsureIndexes(ie.db, indexes, ie.log)
 }
 
 func (ie *defaultIndexEnsurer) EnsureConstraints(constraints map[string]string) error {
-	return EnsureConstraints(ie.db, constraints)
+	return EnsureConstraints(ie.db, constraints, ie.log)
 }

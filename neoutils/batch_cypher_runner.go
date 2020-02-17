@@ -2,7 +2,8 @@ package neoutils
 
 import (
 	"encoding/json"
-	log "github.com/Financial-Times/go-logger"
+	"fmt"
+
 	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
 	"github.com/jmcvetta/neoism"
 	"github.com/rcrowley/go-metrics"
@@ -81,8 +82,7 @@ func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*neoism.CypherQ
 			}{}
 
 			if jsonErr := json.Unmarshal([]byte(neoErr.Message), &neoErrMsg); jsonErr != nil {
-				log.WithError(jsonErr).Error("ERROR Got error trying to process Neo Error Message")
-				return err
+				return fmt.Errorf("failed to process Neo error message: %w", err)
 			}
 
 			for _, nerr := range neoErrMsg.Errors {
