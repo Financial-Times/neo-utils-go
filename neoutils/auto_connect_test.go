@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Financial-Times/go-logger/v2"
-	"github.com/jmcvetta/neoism"
 )
 
 var period = 100 * time.Millisecond
@@ -311,7 +310,7 @@ func TestCypherFailsBeforeConnected(t *testing.T) {
 	}
 
 	time.Sleep(period + (50 * time.Millisecond))
-	err = conn.CypherBatch([]*neoism.CypherQuery{})
+	err = conn.CypherBatch([]*CypherQuery{})
 	if err == nil {
 		t.Error("expected error due to not being connected yet")
 	}
@@ -338,7 +337,7 @@ func TestCypherErrorPermanentURLErrorCausesReconnect(t *testing.T) {
 func testCypherErrorCausesReconnect(t *testing.T, theError error, expectReconnect bool) {
 	l := logger.NewUPPLogger("neo-utils-go-test", "PANIC")
 	mock := newMockNeoConnection()
-	mock.cypherFunc = func(queries []*neoism.CypherQuery) error {
+	mock.cypherFunc = func(queries []*CypherQuery) error {
 		return theError
 	}
 
@@ -363,7 +362,7 @@ func testCypherErrorCausesReconnect(t *testing.T, theError error, expectReconnec
 	}
 
 	// run a failing cypher
-	err = conn.CypherBatch([]*neoism.CypherQuery{})
+	err = conn.CypherBatch([]*CypherQuery{})
 	if err == nil {
 		t.Error("expected an error")
 	}
@@ -385,19 +384,19 @@ func testCypherErrorCausesReconnect(t *testing.T, theError error, expectReconnec
 
 func newMockNeoConnection() *mockNeoConnection {
 	return &mockNeoConnection{
-		cypherFunc:      func(queries []*neoism.CypherQuery) error { return nil },
+		cypherFunc:      func(queries []*CypherQuery) error { return nil },
 		constraintsFunc: func(constraints map[string]string) error { return nil },
 		indexFunc:       func(indexes map[string]string) error { return nil },
 	}
 }
 
 type mockNeoConnection struct {
-	cypherFunc      func(queries []*neoism.CypherQuery) error
+	cypherFunc      func(queries []*CypherQuery) error
 	constraintsFunc func(constraints map[string]string) error
 	indexFunc       func(indexes map[string]string) error
 }
 
-func (m *mockNeoConnection) CypherBatch(queries []*neoism.CypherQuery) error {
+func (m *mockNeoConnection) CypherBatch(queries []*CypherQuery) error {
 	return m.cypherFunc(queries)
 }
 

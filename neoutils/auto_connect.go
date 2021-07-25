@@ -10,7 +10,6 @@ import (
 	"github.com/Financial-Times/go-logger/v2"
 
 	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
-	"github.com/jmcvetta/neoism"
 )
 
 var (
@@ -106,7 +105,7 @@ func (a *AutoConnectTransactional) String() string {
 	return fmt.Sprintf("AutoConnectDb(%v)", a.url)
 }
 
-func (a *AutoConnectTransactional) CypherBatch(queries []*neoism.CypherQuery) error {
+func (a *AutoConnectTransactional) CypherBatch(queries []*CypherQuery) error {
 	a.lk.RLock()
 	defer a.lk.RUnlock()
 	if a.conn == nil {

@@ -1,11 +1,6 @@
 package neoutils
 
 import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
-	"github.com/jmcvetta/neoism"
 	"github.com/rcrowley/go-metrics"
 )
 
@@ -23,7 +18,7 @@ type BatchCypherRunner struct {
 	count int
 }
 
-func (bcr *BatchCypherRunner) CypherBatch(queries []*neoism.CypherQuery) error {
+func (bcr *BatchCypherRunner) CypherBatch(queries []*CypherQuery) error {
 
 	errCh := make(chan error)
 	bcr.ch <- cypherQueryBatch{queries, errCh}
@@ -31,7 +26,7 @@ func (bcr *BatchCypherRunner) CypherBatch(queries []*neoism.CypherQuery) error {
 }
 
 type cypherQueryBatch struct {
-	queries []*neoism.CypherQuery
+	queries []*CypherQuery
 	err     chan error
 }
 
@@ -39,7 +34,7 @@ func (bcr *BatchCypherRunner) batcher() {
 	g := metrics.GetOrRegisterGauge("batchQueueSize", metrics.DefaultRegistry)
 	b := metrics.GetOrRegisterMeter("batchThroughput", metrics.DefaultRegistry)
 	for {
-		var currentQueries []*neoism.CypherQuery
+		var currentQueries []*CypherQuery
 		var currentErrorChannels []chan error
 		// wait for at least one
 		cb := <-bcr.ch
@@ -72,25 +67,6 @@ func (bcr *BatchCypherRunner) batcher() {
 	}
 }
 
-func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*neoism.CypherQuery) error {
-	err := bcr.cr.CypherBatch(currentQueries)
-	if err != nil {
-		if neoErr, ok := err.(neoism.NeoError); ok && neoErr.Exception == "BatchOperationFailedException" {
-			neoErrMsg := struct {
-				Message string           `json:"message"`
-				Errors  []neoism.TxError `json:"errors"`
-			}{}
-
-			if jsonErr := json.Unmarshal([]byte(neoErr.Message), &neoErrMsg); jsonErr != nil {
-				return fmt.Errorf("failed to process Neo error message: %w", err)
-			}
-
-			for _, nerr := range neoErrMsg.Errors {
-				if nerr.Code == "Neo.ClientError.Schema.ConstraintViolation" || nerr.Code == "Neo.ClientError.Schema.ConstraintValidationFailed" {
-					return rwapi.ConstraintOrTransactionError{Message: nerr.Message}
-				}
-			}
-		}
-	}
-	return err
+func processCypherBatch(bcr *BatchCypherRunner, currentQueries []*CypherQuery) error {
+	return bcr.cr.CypherBatch(currentQueries)
 }

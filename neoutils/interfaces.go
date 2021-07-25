@@ -1,11 +1,7 @@
 package neoutils
 
-import (
-	"github.com/jmcvetta/neoism"
-)
-
 type CypherRunner interface {
-	CypherBatch(queries []*neoism.CypherQuery) error
+	CypherBatch(queries []*CypherQuery) error
 }
 
 type IndexEnsurer interface {

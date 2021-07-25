@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"path/filepath"
 	"time"
 
 	"github.com/Financial-Times/go-logger/v2"
-	"github.com/jmcvetta/neoism"
-	"go4.org/osutil"
 )
 
 type ConnectionConfig struct {
@@ -82,22 +79,10 @@ func Connect(neoURL string, conf *ConnectionConfig, log *logger.UPPLogger) (NeoC
 }
 
 func connectDefault(neoURL string, conf *ConnectionConfig, log *logger.UPPLogger) (NeoConnection, error) {
-
-	db, err := neoism.Connect(neoURL)
+	db, err := NewDatabase(neoURL, conf)
 	if err != nil {
 		return nil, err
 	}
-
-	if conf.HTTPClient != nil {
-		db.Session.Client = conf.HTTPClient
-	}
-
-	exeName, err := osutil.Executable()
-	if err == nil {
-		_, exeFile := filepath.Split(exeName)
-		db.Session.Header.Set("User-Agent", exeFile+" (using neoutils)")
-	}
-
 	var cr CypherRunner = db
 	if conf.Transactional {
 		cr = TransactionalCypherRunner{db}
@@ -119,10 +104,10 @@ type DefaultNeoConnection struct {
 	cr    CypherRunner
 	ie    IndexEnsurer
 
-	db *neoism.Database
+	db Database
 }
 
-func (c *DefaultNeoConnection) CypherBatch(cypher []*neoism.CypherQuery) error {
+func (c *DefaultNeoConnection) CypherBatch(cypher []*CypherQuery) error {
 	return c.cr.CypherBatch(cypher)
 
 }
@@ -142,7 +127,7 @@ func (c *DefaultNeoConnection) String() string {
 var _ NeoConnection = (*DefaultNeoConnection)(nil) //{}
 
 type defaultIndexEnsurer struct {
-	db  *neoism.Database
+	db  Database
 	log *logger.UPPLogger
 }
 
