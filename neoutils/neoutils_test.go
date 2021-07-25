@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/Financial-Times/go-logger/v2"
-	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +26,7 @@ func TestIndexesAreNotRecreatedIfPresent(t *testing.T) {
 	indexes := map[string]string{
 		"Thing": "uuid"}
 
-	existingIndexes := []*neoism.Index{{PropertyKeys: []string{"uuid"}}}
+	existingIndexes := []Index{{Properties: []string{"uuid"}}}
 
 	mIM := mockIndexManager{existingIndexes: existingIndexes}
 
@@ -52,7 +51,7 @@ func TestConstraintsAreNotRecreatedIfPresent(t *testing.T) {
 		"Thing":   "uuid",
 		"Concept": "uuid"}
 
-	existingConstraints := []*neoism.UniqueConstraint{{PropertyKeys: []string{"uuid"}}}
+	existingConstraints := []UniqueConstraint{{Properties: []string{"uuid"}}}
 
 	mIM := mockIndexManager{existingConstraints: existingConstraints}
 
@@ -74,36 +73,36 @@ func TestCheckErrorsIfCannotConnectToNeo4j(t *testing.T) {
 }
 
 type mockIndexManager struct {
-	existingIndexes     []*neoism.Index
-	existingConstraints []*neoism.UniqueConstraint
+	existingIndexes     []Index
+	existingConstraints []UniqueConstraint
 }
 
-func (mIM mockIndexManager) CreateIndex(label string, propertyName string) (*neoism.Index, error) {
+func (mIM mockIndexManager) CreateIndex(label string, propertyName string) error {
 
 	if len(mIM.existingIndexes) > 0 {
-		return nil, errors.New("Shouldn't call CreateIndex if there are existing indexes already")
+		return errors.New("shouldn't call CreateIndex if there are existing indexes already")
 	}
-	return &neoism.Index{}, nil
+	return nil
 }
 
-func (mIM mockIndexManager) Indexes(label string) ([]*neoism.Index, error) {
+func (mIM mockIndexManager) Indexes(label string) ([]Index, error) {
 	if len(mIM.existingIndexes) == 0 {
-		return nil, neoism.NotFound
+		return nil, nil
 	}
 	return mIM.existingIndexes, nil
 }
 
-func (mIM mockIndexManager) CreateUniqueConstraint(label string, propertyName string) (*neoism.UniqueConstraint, error) {
+func (mIM mockIndexManager) CreateUniqueConstraint(label string, propertyName string) error {
 
 	if len(mIM.existingConstraints) > 0 {
-		return nil, errors.New("Shouldn't call CreateUniqueConstraints if there are existing constraints already")
+		return errors.New("shouldn't call CreateUniqueConstraints if there are existing constraints already")
 	}
-	return &neoism.UniqueConstraint{}, nil
+	return nil
 }
 
-func (mIM mockIndexManager) UniqueConstraints(label string, propertyName string) ([]*neoism.UniqueConstraint, error) {
+func (mIM mockIndexManager) UniqueConstraints(label string, propertyName string) ([]UniqueConstraint, error) {
 	if len(mIM.existingConstraints) == 0 {
-		return nil, neoism.NotFound
+		return nil, nil
 	}
 	return mIM.existingConstraints, nil
 }
@@ -112,7 +111,7 @@ type mockCypherRunner struct {
 	fail bool
 }
 
-func (mCR mockCypherRunner) CypherBatch(queries []*neoism.CypherQuery) error {
+func (mCR mockCypherRunner) CypherBatch(queries []*CypherQuery) error {
 	if mCR.fail == true {
 		return errors.New("Fail to run query")
 	}
@@ -123,26 +122,26 @@ func (mCR mockCypherRunner) String() string {
 	return "URL"
 }
 
-func connectTest(t *testing.T) *neoism.Database {
-	neo4jURL := os.Getenv("NEO4J_URL")
+func connectTest(t *testing.T) Database {
+	neo4jURL := os.Getenv("NEO4J_TEST_URL")
 	if neo4jURL == "" {
-		neo4jURL = "http://localhost:7474/db/data"
+		neo4jURL = "http://localhost:7474/db/neo4j"
 	}
 
-	db, err := neoism.Connect(neo4jURL)
+	db, err := NewDatabase(neo4jURL, DefaultConnectionConfig())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := db.CreateUniqueConstraint("NeoUtilsTest", "name"); err != nil {
+	if err := db.CreateUniqueConstraint("NeoUtilsTest", "name"); err != nil {
 		t.Fatal(err)
 	}
 	return db
 }
 
-func cleanup(t *testing.T, db *neoism.Database) {
+func cleanup(t *testing.T, db Database) {
 
-	err := db.CypherBatch([]*neoism.CypherQuery{
+	err := db.CypherBatch([]*CypherQuery{
 		{
 			Statement: `MATCH (x:NeoUtilsTest) DETACH DELETE x`,
 		},
@@ -152,8 +151,8 @@ func cleanup(t *testing.T, db *neoism.Database) {
 	}
 }
 
-func cleanupConstraints(t *testing.T, db *neoism.Database) {
-	err := db.CypherBatch([]*neoism.CypherQuery{
+func cleanupConstraints(t *testing.T, db Database) {
+	err := db.CypherBatch([]*CypherQuery{
 		{
 			Statement: `DROP CONSTRAINT ON (x:NeoUtilsTest) ASSERT x.name IS UNIQUE`,
 		},

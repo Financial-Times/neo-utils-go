@@ -5,15 +5,10 @@ import (
 	"fmt"
 
 	"github.com/Financial-Times/go-logger/v2"
-	"github.com/jmcvetta/neoism"
 )
 
-// StringerDb wraps neoism Database to provide a String function, which outputs the database URL
-type StringerDb struct{ *neoism.Database }
-
-func (sdb StringerDb) String() string {
-	return sdb.Url
-}
+//  StringerDb wraps neoism Database to provide a String function, which outputs the database URL
+type StringerDb struct{ Database }
 
 // Check will use the supplied CypherRunner to check connectivity to Neo4j
 func Check(cr CypherRunner) error {
@@ -21,12 +16,12 @@ func Check(cr CypherRunner) error {
 		node interface{}
 	}
 
-	query := &neoism.CypherQuery{
+	query := &CypherQuery{
 		Statement: `MATCH (n) RETURN id(n) LIMIT 1`,
 		Result:    &results,
 	}
 
-	err := cr.CypherBatch([]*neoism.CypherQuery{query})
+	err := cr.CypherBatch([]*CypherQuery{query})
 
 	if err != nil {
 		return err
@@ -41,12 +36,12 @@ func CheckWritable(cr CypherRunner) error {
 		Role string `json:"role"`
 	}
 
-	query := &neoism.CypherQuery{
-		Statement: `CALL dbms.cluster.role()`,
+	query := &CypherQuery{
+		Statement: `CALL dbms.cluster.role("neo4j")`,
 		Result:    &res,
 	}
 
-	err := cr.CypherBatch([]*neoism.CypherQuery{query})
+	err := cr.CypherBatch([]*CypherQuery{query})
 
 	if err != nil {
 		return err
@@ -97,17 +92,16 @@ func EnsureConstraints(im IndexManager, indexes map[string]string, log *logger.U
 }
 
 func ensureIndex(im IndexManager, label string, propertyName string, log *logger.UPPLogger) error {
-
 	indexes, err := im.Indexes(label)
 
 	var indexFound bool
 
-	if err != nil && err != neoism.NotFound {
+	if err != nil {
 		return err
 	}
 
 	for _, index := range indexes {
-		if len(index.PropertyKeys) == 1 && index.PropertyKeys[0] == propertyName {
+		if len(index.Properties) == 1 && index.Properties[0] == propertyName {
 			indexFound = true
 			break
 		}
@@ -115,7 +109,7 @@ func ensureIndex(im IndexManager, label string, propertyName string, log *logger
 
 	if !indexFound {
 		log.Infof("Creating index for type %s on property %s\n", label, propertyName)
-		_, err := im.CreateIndex(label, propertyName)
+		err := im.CreateIndex(label, propertyName)
 		if err != nil {
 			return err
 		}
@@ -125,41 +119,26 @@ func ensureIndex(im IndexManager, label string, propertyName string, log *logger
 }
 
 func ensureConstraint(im IndexManager, label string, propertyName string, log *logger.UPPLogger) error {
-	_, err := im.UniqueConstraints(label, propertyName)
-
+	cs, err := im.UniqueConstraints(label, propertyName)
 	if err != nil {
-		if err == neoism.NotFound {
-			log.Infof("Creating unique constraint for type %s on property %s\n", label, propertyName)
-			_, err = im.CreateUniqueConstraint(label, propertyName)
-			if err != nil {
-				return fmt.Errorf("cannot create constraint for type %s on property %s\n:, %w", label, propertyName, err)
-			}
-		}
 		return err
 	}
+	if len(cs) == 0 {
+		log.Infof("Creating unique constraint for type %s on property %s\n", label, propertyName)
+		err = im.CreateUniqueConstraint(label, propertyName)
+		if err != nil {
+			return fmt.Errorf("cannot create constraint for type %s on property %s\n:, %w", label, propertyName, err)
+		}
+	}
+
 	return nil
 
 }
 
-func getIndex(im IndexManager, label string, propertyName string) (*neoism.Index, error) {
-	indexes, err := im.Indexes(label)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for _, index := range indexes {
-		if len(index.PropertyKeys) == 1 && index.PropertyKeys[0] == propertyName {
-			return index, nil
-		}
-	}
-	return nil, nil
-}
-
 // IndexManager manages the maintenance of indexes and unique constraints
 type IndexManager interface {
-	CreateIndex(label string, propertyName string) (*neoism.Index, error)
-	Indexes(label string) ([]*neoism.Index, error)
-	CreateUniqueConstraint(label string, propertyName string) (*neoism.UniqueConstraint, error)
-	UniqueConstraints(label string, propertyName string) ([]*neoism.UniqueConstraint, error)
+	CreateIndex(label string, propertyName string) error
+	Indexes(label string) ([]Index, error)
+	CreateUniqueConstraint(label string, propertyName string) error
+	UniqueConstraints(label string, propertyName string) ([]UniqueConstraint, error)
 }

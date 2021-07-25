@@ -7,8 +7,8 @@ jobs:
         environment:
           CIRCLE_TEST_REPORTS: /tmp/test-results
           CIRCLE_COVERAGE_REPORT: /tmp/coverage-results
-          NEO4J_URL: http://neo4j:foobar@localhost:7474/db/data/
-      - image: neo4j:3.2.7-enterprise
+          NEO4J_URL: http://neo4j:foobar@localhost:7474/db/neo4j/
+      - image: neo4j:4.3-enterprise
         environment:
           NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
           NEO4J_AUTH: none
