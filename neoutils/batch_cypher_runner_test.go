@@ -7,8 +7,6 @@ import (
 
 	"fmt"
 
-	"github.com/Financial-Times/up-rw-app-api-go/rwapi"
-	"github.com/jmcvetta/neoism"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +17,7 @@ func TestAllQueriesRun(t *testing.T) {
 	errCh := make(chan error)
 
 	go func() {
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "First"},
 			{Statement: "Second"},
 		})
@@ -27,7 +25,7 @@ func TestAllQueriesRun(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Millisecond * 1)
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "Third"},
 		})
 	}()
@@ -37,7 +35,7 @@ func TestAllQueriesRun(t *testing.T) {
 		assert.NoError(t, err, "Got an error for %d", i)
 	}
 
-	expected := []*neoism.CypherQuery{
+	expected := []*CypherQuery{
 		{Statement: "First"},
 		{Statement: "Second"},
 		{Statement: "Third"},
@@ -47,27 +45,27 @@ func TestAllQueriesRun(t *testing.T) {
 }
 
 func TestQueryBatching(t *testing.T) {
-	dr := &delayRunner{make(chan []*neoism.CypherQuery)}
+	dr := &delayRunner{make(chan []*CypherQuery)}
 	batchCypherRunner := NewBatchCypherRunner(dr, 3)
 
 	errCh := make(chan error)
 
 	go func() {
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "First"},
 		})
 	}()
 
 	go func() {
 		time.Sleep(time.Millisecond * 10)
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "Second"},
 		})
 	}()
 
 	go func() {
 		time.Sleep(time.Millisecond * 20)
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "Third"},
 		})
 	}()
@@ -75,12 +73,12 @@ func TestQueryBatching(t *testing.T) {
 	time.Sleep(30 * time.Millisecond)
 
 	// Only "First" can have finished because delayRunner is blocking the others until we read from its channel.
-	assert.Equal(t, []*neoism.CypherQuery{
+	assert.Equal(t, []*CypherQuery{
 		{Statement: "First"},
 	}, <-dr.queriesRun)
 
 	// because of the time.Sleep() calls earlier, these should both be ready by now.
-	assert.Equal(t, []*neoism.CypherQuery{
+	assert.Equal(t, []*CypherQuery{
 		{Statement: "Second"},
 		{Statement: "Third"},
 	}, <-dr.queriesRun)
@@ -99,14 +97,14 @@ func TestEveryoneGetsErrorOnFailure(t *testing.T) {
 	errCh := make(chan error)
 
 	go func() {
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "First"},
 			{Statement: "Second"},
 		})
 	}()
 
 	go func() {
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "Third"},
 		})
 	}()
@@ -131,15 +129,15 @@ func TestAttemptToWriteConflictItem(t *testing.T) {
 	var res []struct {
 		Rs int `json:"rs"`
 	}
-
 	go func() {
 		fmt.Println("Batching...")
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "CREATE (x:NeoUtilsTest { name : 'Andres', title : 'Developer' })"},
 			{Statement: "CREATE (x:NeoUtilsTest { name : 'Bob', title : 'Builder' })"},
 			{
 				Statement: "MATCH (x:NeoUtilsTest) return count(x) as rs",
-				Result:    &res},
+				Result:    &res,
+			},
 		})
 		fmt.Println("Done...")
 	}()
@@ -151,20 +149,20 @@ func TestAttemptToWriteConflictItem(t *testing.T) {
 	assert.Equal(t, 2, res[0].Rs)
 
 	go func() {
-		errCh <- batchCypherRunner.CypherBatch([]*neoism.CypherQuery{
+		errCh <- batchCypherRunner.CypherBatch([]*CypherQuery{
 			{Statement: "CREATE (x:NeoUtilsTest { name : 'Andres', title : 'Should fail' })"},
 		})
 	}()
 	err = <-errCh
 	assert.Error(t, err)
-	assert.IsType(t, rwapi.ConstraintOrTransactionError{}, err)
+	assert.IsType(t, NeoErrors{}, err)
 }
 
 type mockRunner struct {
-	queriesRun []*neoism.CypherQuery
+	queriesRun []*CypherQuery
 }
 
-func (mr *mockRunner) CypherBatch(queries []*neoism.CypherQuery) error {
+func (mr *mockRunner) CypherBatch(queries []*CypherQuery) error {
 	mr.queriesRun = append(mr.queriesRun, queries...)
 	return nil
 }
@@ -176,7 +174,7 @@ func (mr *mockRunner) String() string {
 type failRunner struct {
 }
 
-func (mr *failRunner) CypherBatch(queries []*neoism.CypherQuery) error {
+func (mr *failRunner) CypherBatch(queries []*CypherQuery) error {
 	return errors.New("UNIT TESTING: Deliberate fail for every query")
 }
 
@@ -185,10 +183,10 @@ func (mr *failRunner) String() string {
 }
 
 type delayRunner struct {
-	queriesRun chan []*neoism.CypherQuery
+	queriesRun chan []*CypherQuery
 }
 
-func (dr *delayRunner) CypherBatch(queries []*neoism.CypherQuery) error {
+func (dr *delayRunner) CypherBatch(queries []*CypherQuery) error {
 	dr.queriesRun <- queries
 	return nil
 }
