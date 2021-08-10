@@ -12,13 +12,13 @@ type StringerDb struct{ Database }
 
 // Check will use the supplied CypherRunner to check connectivity to Neo4j
 func Check(cr CypherRunner) error {
-	var results []struct {
-		node interface{}
+	var result []struct {
+		N int `json:"n"`
 	}
 
 	query := &CypherQuery{
-		Statement: `MATCH (n) RETURN id(n) LIMIT 1`,
-		Result:    &results,
+		Statement: `MATCH (n) RETURN id(n) as n LIMIT 1`,
+		Result:    &result,
 	}
 
 	err := cr.CypherBatch([]*CypherQuery{query})
@@ -48,7 +48,7 @@ func CheckWritable(cr CypherRunner) error {
 	}
 
 	if len(res) == 0 || res[0].Role == "" {
-		return errors.New("got empty response from dbms.cluster.role()")
+		return errors.New(`got empty response from dbms.cluster.role("neo4j")`)
 	}
 
 	role := res[0].Role
